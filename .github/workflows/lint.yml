@@ -1,0 +1,29 @@
+name: Lint C++ code
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: none
+
+jobs:
+  lint:
+    name: clang-format
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: clang-format Check
+        uses: jidicula/clang-format-action@v4.11.0
+        with:
+          clang-format-version: 17
+          check-path: src
