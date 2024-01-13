@@ -1,0 +1,55 @@
+name: Static Code Analysis
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: none
+
+jobs:
+  scan-build:
+    name: Run Clang Analyzer
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    env:
+      CC: clang-17
+      CXX: clang++-17
+      CCC_CC: clang-17
+      CCC_CXX: clang++-17
+      DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 1
+      SCANBUILD_DIR: /tmp/scanbuild
+    steps:
+      - name: Check out code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
+
+      - name: Run analysis
+        run: |
+          scan-build-17 cmake -B build
+          scan-build-17 --force-analyze-debug-code -sarif --status-bugs -no-failure-reports -o "${SCANBUILD_DIR}" --exclude build cmake --build build
+        continue-on-error: true
+        id: scanbuild
+
+      - name: Merge SARIF reports
+        run: sarif-multitool merge "${{ env.SCANBUILD_DIR }}/" --recurse --output-directory=/tmp --output-file=scan-build.sarif
+
+      - name: Upload scan results
+        uses: github/codeql-action/upload-sarif@v3.23.0
+        with:
+          sarif_file: /tmp/scan-build.sarif
+          category: scanbuild
+        continue-on-error: true
+
+      - name: Set exit code
+        run: exit 1
+        if: steps.scanbuild.outcome == 'failure'
