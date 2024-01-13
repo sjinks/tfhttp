@@ -1,4 +1,4 @@
-FROM ubuntu:23.10 AS build
+FROM ubuntu:mantic-20231128@sha256:cbc171ba52575fec0601f01abf6fdec67f8ed227658cacbc10d778ac3b218307 AS build
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
