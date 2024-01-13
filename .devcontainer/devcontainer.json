@@ -1,0 +1,34 @@
+{
+    "name": "tfhttp",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "remoteUser": "ubuntu",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cmake-tools",
+                "ms-vscode.cpptools",
+                "github.copilot",
+                "akiramiyakoda.cppincludeguard",
+                "SonarSource.sonarlint-vscode",
+                "ms-vscode.cpptools-extension-pack",
+                "xaver.clang-format",
+                "GitHub.copilot-chat"
+            ],
+            "settings": {
+                "sonarlint.ls.javaHome": "/usr/lib/jvm/java-21-openjdk-amd64",
+                "sonarlint.pathToCompileCommands": "${workspaceFolder}/build/compile_commands.json",
+                "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+                "C_Cpp.codeAnalysis.clangTidy.useBuildPath": true,
+                "C_Cpp.default.cppStandard": "c++20",
+                "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+                "C_Cpp.clang_format_fallbackStyle": "none",
+                "[cpp]": {
+                    "editor.formatOnSave": true,
+                    "editor.defaultFormatter": "xaver.clang-format"
+                }
+            }
+        }
+    }
+}

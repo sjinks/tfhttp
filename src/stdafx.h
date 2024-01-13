@@ -1,0 +1,39 @@
+#ifndef F69F6EF3_922C_4E28_9A45_72BAB37283ED
+#define F69F6EF3_922C_4E28_9A45_72BAB37283ED
+
+#include <array>
+#include <cctype>
+#include <cerrno>
+#include <chrono>
+#include <clocale>
+#include <csignal>
+#include <cstddef>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <exception>
+#include <format>
+#include <functional>
+#include <initializer_list>
+#include <limits>
+#include <map>
+#include <memory>
+#include <random>
+#include <regex>
+#include <stdexcept>
+#include <string>
+#include <string_view>
+#include <system_error>
+#include <unordered_set>
+#include <vector>
+#include <ada.h>
+#include <arpa/inet.h>
+#include <ev++.h>
+#include <llhttp.h>
+#include <netinet/in.h>
+#include <sqlite3pp.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <nlohmann/json.hpp>
+
+#endif /* F69F6EF3_922C_4E28_9A45_72BAB37283ED */

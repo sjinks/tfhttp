@@ -1,0 +1,4 @@
+---
+Checks:            'bugprone-*,cert-*,clang-analyzer-*,concurrency-*,cppcoreguidelines-*,hicpp-*,misc-*,modernize-*,performance-*,portability-*,readability-*,-modernize-use-trailing-return-type,-bugprone-easily-swappable-parameters,-readability-identifier-length,-readability-named-parameter,-hicpp-special-member-functions,-hicpp-use-equals-default,-hicpp-move-const-arg,-hicpp-named-parameter,-misc-include-cleaner,-cppcoreguidelines-pro-type-union-access,-*-avoid-do-while'
+FormatStyle:       none
+HeaderFilterRegex: '.*'

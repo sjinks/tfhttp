@@ -1,0 +1,15 @@
+FROM alpine:3.19.0 AS build
+
+RUN apk add --no-cache cmake make libc-dev clang17 git file libev-dev ada-static ada-dev sqlite-dev sqlite-static sqlite3pp nlohmann-json
+WORKDIR /
+COPY . /app
+WORKDIR /app
+
+RUN \
+    cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel && \
+    cmake --build build && \
+    strip --strip-unneeded build/src/tfhttp
+
+FROM scratch
+COPY --from=build /app/build/src/tfhttp /tfhttp
+ENTRYPOINT ["/tfhttp"]
