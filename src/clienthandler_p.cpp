@@ -41,7 +41,7 @@ void ClientHandlerPrivate::on_read(ev::io& watcher, int)  // NOSONAR(cpp:S995)
     constexpr std::size_t BUFFER_SIZE = 8192;
     std::array<char, BUFFER_SIZE> buffer{};
     const ssize_t received = recv(watcher.fd, buffer.data(), sizeof(buffer), 0);
-    if (received <= 0) {
+    if (received <= 0) [[unlikely]] {
         std::cerr << std::format(
             "Error: failed to read from socket: {}\n", std::error_code(errno, std::system_category()).message()
         );
@@ -51,7 +51,7 @@ void ClientHandlerPrivate::on_read(ev::io& watcher, int)  // NOSONAR(cpp:S995)
     }
 
     if (auto status = llhttp_execute(&this->m_parser, buffer.data(), static_cast<std::size_t>(received));
-        status != HPE_OK) {
+        status != HPE_OK) [[unlikely]] {
         std::cerr << std::format("Error: failed to parse HTTP request: {}\n", llhttp_errno_name(status));
         this->stop_watchers();
         this->terminate();
@@ -68,7 +68,7 @@ void ClientHandlerPrivate::on_write(ev::io& watcher, int)
     auto len              = this->m_response.size() - this->m_offset;
     const ssize_t written = send(watcher.fd, buf, len, 0);
 
-    if (written <= 0) {
+    if (written <= 0) [[unlikely]] {
         std::cerr << std::format(
             "Error: failed to write to socket: {}\n", std::error_code(errno, std::system_category()).message()
         );
@@ -101,7 +101,7 @@ void ClientHandlerPrivate::stop_watchers()
 
 void ClientHandlerPrivate::terminate()
 {
-    if (auto server = this->m_server.lock(); server) {
+    if (auto server = this->m_server.lock(); server) [[likely]] {
         server->remove_handler(this->q_ptr);
     }
 }
@@ -162,7 +162,7 @@ void ClientHandlerPrivate::not_found()
 void ClientHandlerPrivate::method_not_allowed(const char* allowed)
 {
     const auto status = static_cast<int>(HTTP_STATUS_METHOD_NOT_ALLOWED);
-    const char* text  = ClientHandlerPrivate::get_status_text(status);
+    const auto text   = ClientHandlerPrivate::get_status_text(status);
 
     this->m_response = std::format(
         "HTTP/1.1 {0} {1}\r\n"
@@ -173,7 +173,7 @@ void ClientHandlerPrivate::method_not_allowed(const char* allowed)
         "Connection: close\r\n"
         "\r\n"
         "{1}\n",
-        status, text, ClientHandlerPrivate::generate_http_date(), std::strlen(text) + 1, allowed
+        status, text, ClientHandlerPrivate::generate_http_date(), text.size() + 1, allowed
     );
 }
 
@@ -274,14 +274,14 @@ std::string ClientHandlerPrivate::generate_http_date()
     return std::format("{0:%a} {0:%d} {0:%b} {0:%Y} {0:%X} GMT", std::chrono::system_clock::now());
 }
 
-const char* ClientHandlerPrivate::get_status_text(int status)
+std::string_view ClientHandlerPrivate::get_status_text(int status)
 {
     return llhttp_status_name(static_cast<llhttp_status_t>(status));
 }
 
 void ClientHandlerPrivate::generate_text_response(int status)
 {
-    const char* text = ClientHandlerPrivate::get_status_text(status);
+    auto text = ClientHandlerPrivate::get_status_text(status);
 
     this->m_response = std::format(
         "HTTP/1.1 {0} {1}\r\n"
@@ -291,6 +291,6 @@ void ClientHandlerPrivate::generate_text_response(int status)
         "Connection: close\r\n"
         "\r\n"
         "{1}\n",
-        status, text, ClientHandlerPrivate::generate_http_date(), std::strlen(text) + 1
+        status, text, ClientHandlerPrivate::generate_http_date(), text.size() + 1
     );
 }

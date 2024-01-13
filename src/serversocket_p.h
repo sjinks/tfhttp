@@ -19,6 +19,8 @@ public:
 private:
     int m_socket = -1;
 
+    static constexpr const int BACKLOG_SIZE = 512;
+
     std::uint16_t get_port() const;  // NOLINT(*-use-nodiscard)
 };
 

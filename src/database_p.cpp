@@ -31,7 +31,7 @@ DatabasePrivate::set_state(const std::string& slug, const std::string& state, co
     return this->transaction([this, &slug, &state, &lock_id]() {
         using enum Database::status_t;
         if (this->has_lock(slug)) {
-            if (lock_id.empty()) {
+            if (lock_id.empty()) [[unlikely]] {
                 return BAD_REQUEST;
             }
 
@@ -50,7 +50,7 @@ Database::status_t DatabasePrivate::delete_state(const std::string& slug, const 
     return this->transaction([this, &slug, &lock_id]() {
         using enum Database::status_t;
         if (this->has_lock(slug)) {
-            if (lock_id.empty()) {
+            if (lock_id.empty()) [[unlikely]] {
                 return BAD_REQUEST;
             }
 
@@ -79,7 +79,7 @@ Database::status_t DatabasePrivate::put_lock(const std::string& slug, const std:
 Database::status_t DatabasePrivate::delete_lock(const std::string& slug, const std::string& lock_id)
 {
     return this->transaction([this, &slug, &lock_id]() {
-        if (!this->has_lock(slug, lock_id)) {
+        if (!this->has_lock(slug, lock_id)) [[unlikely]] {
             return Database::status_t::BAD_REQUEST;
         }
 
@@ -136,27 +136,14 @@ void DatabasePrivate::run_query(const char* query, std::initializer_list<std::st
         cmd.bind(i + 1, *(args.begin() + i), sqlite3pp::nocopy);
     }
 
-    const int rc = cmd.execute();
-    if (rc != SQLITE_OK) {
+    if (cmd.execute() != SQLITE_OK) [[unlikely]] {
         throw sqlite3pp::database_error(this->m_db);
     }
 }
 
 void DatabasePrivate::execute(const char* query)
 {
-    const int rc = this->m_db.execute(query);
-    if (rc != SQLITE_OK) {
+    if (this->m_db.execute(query) != SQLITE_OK) [[unlikely]] {
         throw sqlite3pp::database_error(this->m_db);
     }
-}
-
-Database::status_t DatabasePrivate::transaction(const transaction_t& f)
-{
-    sqlite3pp::transaction xact(this->m_db);
-    auto result = f();
-    if (xact.commit() != SQLITE_OK) {
-        throw sqlite3pp::database_error(this->m_db);
-    }
-
-    return result;
 }

@@ -19,6 +19,10 @@
             "settings": {
                 "sonarlint.ls.javaHome": "/usr/lib/jvm/java-21-openjdk-amd64",
                 "sonarlint.pathToCompileCommands": "${workspaceFolder}/build/compile_commands.json",
+                "sonarlint.connectedMode.project": {
+                    "connectionId": "wildwolf",
+                    "projectKey": "sjinks_tfhttp"
+                },
                 "C_Cpp.codeAnalysis.clangTidy.enabled": true,
                 "C_Cpp.codeAnalysis.clangTidy.useBuildPath": true,
                 "C_Cpp.default.cppStandard": "c++20",
