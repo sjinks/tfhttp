@@ -1,0 +1,50 @@
+name: CodeQL
+
+on:
+  push:
+    branches: 
+      - master
+  pull_request:
+    branches:
+      - master
+  schedule:
+    - cron: '26 7 * * 4'
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language:
+          - c-cpp
+    env:
+      CC: clang-17
+      CXX: clang++-17
+    steps:
+      - name: Check out code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3.23.0
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
+
+      - name: Build
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel
+          cmake --build build
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3.23.0
+        with:
+          category: "/language:${{ matrix.language }}"
