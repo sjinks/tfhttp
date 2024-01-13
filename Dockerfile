@@ -3,7 +3,8 @@ FROM ubuntu:mantic-20231128@sha256:cbc171ba52575fec0601f01abf6fdec67f8ed227658ca
 ENV DEBIAN_FRONTEND=noninteractive
 RUN \
     apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates cmake git clang make python3-minimal python3-whichcraft nlohmann-json3-dev libsqlite3-dev libev-dev pkgconf
+    apt-get install -y --no-install-recommends ca-certificates cmake git clang make python3-minimal python3-whichcraft nlohmann-json3-dev libsqlite3-dev libev-dev pkgconf && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 COPY . /app
 WORKDIR /app
 

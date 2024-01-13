@@ -48,7 +48,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@dbef88086f6cef02e264edb7dbf63250c17cef6c # v5.5.0
         with:
-          images: ${{ github.repository }}
+          images: ghcr.io/${{ github.repository }}
           flavor: |
             latest=auto
             prefix=${{ matrix.variant.tag }}-,onlatest=true
