@@ -5,7 +5,7 @@
 ServerSocketPrivate::ServerSocketPrivate(const std::string& ip, std::uint16_t port)
     : m_socket(socket(PF_INET, SOCK_STREAM | SOCK_NONBLOCK, IPPROTO_TCP))
 {
-    if (this->m_socket < 0) {
+    if (this->m_socket < 0) [[unlikely]] {
         throw std::system_error(errno, std::system_category(), "socket() failed");
     }
 
@@ -23,27 +23,25 @@ ServerSocketPrivate::ServerSocketPrivate(const std::string& ip, std::uint16_t po
         s.as_sockaddr_in6()->sin6_family = AF_INET6;
         s.as_sockaddr_in6()->sin6_port   = htons(port);
     }
-    else {
+    else [[unlikely]] {
         throw std::invalid_argument("Invalid IP address");
     }
 
-    if (const int res = bind(this->m_socket, s.as_sockaddr(), s.size()); res < 0) {
+    if (const int res = bind(this->m_socket, s.as_sockaddr(), s.size()); res < 0) [[unlikely]] {
         throw std::system_error(errno, std::system_category(), "bind() failed");
     }
 }
 
 ServerSocketPrivate::~ServerSocketPrivate()
 {
-    if (this->m_socket >= 0) {
+    if (this->m_socket >= 0) [[likely]] {
         close(this->m_socket);
     }
 }
 
 std::uint16_t ServerSocketPrivate::listen() const
 {
-    constexpr int BACKLOG_SIZE = 512;
-
-    if (::listen(this->m_socket, BACKLOG_SIZE) < 0) {
+    if (::listen(this->m_socket, ServerSocketPrivate::BACKLOG_SIZE) < 0) [[unlikely]] {
         throw std::system_error(errno, std::system_category(), "listen() failed");
     }
 
@@ -53,7 +51,7 @@ std::uint16_t ServerSocketPrivate::listen() const
 int ServerSocketPrivate::accept() const
 {
     const int res = accept4(this->m_socket, nullptr, nullptr, SOCK_NONBLOCK);
-    if (res < 0) {
+    if (res < 0) [[unlikely]] {
         throw std::system_error(errno, std::system_category(), "accept4() failed");
     }
 
@@ -69,7 +67,7 @@ std::uint16_t ServerSocketPrivate::get_port() const
 {
     SockAddr addr{};
 
-    if (socklen_t addr_len = addr.size(); getsockname(this->m_socket, addr.as_sockaddr(), &addr_len) < 0) {
+    if (socklen_t addr_len = addr.size(); getsockname(this->m_socket, addr.as_sockaddr(), &addr_len) < 0) [[unlikely]] {
         throw std::system_error(errno, std::system_category(), "getsockname() failed");
     }
 

@@ -62,7 +62,7 @@ private:
     static int on_body(llhttp_t* parser, const char* at, std::size_t length);
 
     static std::string generate_http_date();
-    static const char* get_status_text(int status);
+    static std::string_view get_status_text(int status);
     void generate_text_response(int status);
 };
 
