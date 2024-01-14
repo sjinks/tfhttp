@@ -14,9 +14,6 @@ ClientHandlerPrivate::ClientHandlerPrivate(
     this->m_settings.on_url              = ClientHandlerPrivate::on_url;
     this->m_settings.on_body             = ClientHandlerPrivate::on_body;
 
-    this->m_settings.on_chunk_header = nullptr;
-    this->m_settings.on_chunk_header(nullptr);
-
     llhttp_init(&this->m_parser, HTTP_REQUEST, &this->m_settings);
     this->m_parser.data = this;
 }
