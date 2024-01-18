@@ -10,6 +10,7 @@
 class ClientHandler;
 class Database;
 class Server;
+class TLSServerContext;
 
 class ServerPrivate {
 public:
@@ -21,6 +22,8 @@ public:
     std::uint16_t run();
     void remove_handler(const ClientHandler* handler);
 
+    void set_tls_context(const std::shared_ptr<TLSServerContext>& context);
+
 private:
     Server* q_ptr;
     ev::loop_ref m_loop;
@@ -28,6 +31,7 @@ private:
     ev::io m_accept_watcher;
     std::shared_ptr<Database> m_database;
     std::unordered_map<ClientHandler const*, std::unique_ptr<ClientHandler>> m_clients;
+    std::shared_ptr<TLSServerContext> m_tls_context{};
 
     void on_accept(ev::io& watcher, int revents);
 };

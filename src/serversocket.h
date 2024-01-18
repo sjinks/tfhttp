@@ -5,6 +5,7 @@
 #include <memory>
 
 class ServerSocketPrivate;
+class TLSServerContext;
 
 class ServerSocket {
 public:

@@ -4,10 +4,11 @@
 #include "server.h"
 
 ClientHandlerPrivate::ClientHandlerPrivate(
-    ClientHandler* q_ptr, const ev::loop_ref& loop, const std::shared_ptr<Server>& server,
+    ClientHandler* q_ptr, tls* ctx, const ev::loop_ref& loop, const std::shared_ptr<Server>& server,
     const std::shared_ptr<Database>& database
 )
-    : q_ptr(q_ptr), m_loop(loop), m_server(server), m_database(database), m_io(loop), m_timer(loop)
+    : q_ptr(q_ptr), m_ctx(ctx, &dispose_tls_context), m_loop(loop), m_server(server), m_database(database), m_io(loop),
+      m_timer(loop)
 {
     llhttp_settings_init(&this->m_settings);
     this->m_settings.on_message_complete = ClientHandlerPrivate::on_message_complete;
@@ -25,6 +26,10 @@ ClientHandlerPrivate::~ClientHandlerPrivate()
     this->m_timer.stop();
 
     if (fd != -1) {
+        if (this->m_ctx) {
+            tls_close(this->m_ctx.get());
+        }
+
         shutdown(fd, SHUT_RDWR);
         close(fd);
     }
@@ -52,11 +57,26 @@ void ClientHandlerPrivate::on_read(ev::io& watcher, int revents)
     constexpr std::size_t BUFFER_SIZE = 8192;
     std::array<char, BUFFER_SIZE> buffer{};
     int new_events = 0;
+    ssize_t received;
     std::string error;
 
-    const ssize_t received = recv(watcher.fd, buffer.data(), sizeof(buffer), 0);
-    if (received < 0) [[unlikely]] {
-        error = std::error_code(errno, std::system_category()).message();
+    if (this->m_ctx) {
+        received = tls_read(this->m_ctx.get(), buffer.data(), sizeof(buffer));
+        if (received == TLS_WANT_POLLIN) {
+            new_events = ev::READ;
+        }
+        else if (received == TLS_WANT_POLLOUT) {
+            new_events = ev::WRITE;
+        }
+        else if (received < 0) [[unlikely]] {
+            error = tls_error(this->m_ctx.get());
+        }
+    }
+    else {
+        received = recv(watcher.fd, buffer.data(), sizeof(buffer), 0);
+        if (received < 0) [[unlikely]] {
+            error = std::error_code(errno, std::system_category()).message();
+        }
     }
 
     if (received > 0) {
@@ -104,10 +124,25 @@ void ClientHandlerPrivate::on_write(ev::io& watcher, int revents)
     auto len        = this->m_response.size() - this->m_offset;
     int new_events  = 0;
     std::string error;
+    ssize_t written;
 
-    const ssize_t written = send(watcher.fd, buf, len, 0);
-    if (written < 0) [[unlikely]] {
-        error = std::error_code(errno, std::system_category()).message();
+    if (this->m_ctx) {
+        written = tls_write(this->m_ctx.get(), buf, len);
+        if (written == TLS_WANT_POLLIN) {
+            new_events = ev::READ;
+        }
+        else if (written == TLS_WANT_POLLOUT) {
+            new_events = ev::WRITE;
+        }
+        else if (written < 0) [[unlikely]] {
+            error = tls_error(this->m_ctx.get());
+        }
+    }
+    else {
+        written = send(watcher.fd, buf, len, 0);
+        if (written < 0) [[unlikely]] {
+            error = std::error_code(errno, std::system_category()).message();
+        }
     }
 
     if (written > 0) {
@@ -142,8 +177,36 @@ void ClientHandlerPrivate::on_write(ev::io& watcher, int revents)
     }
 }
 
+void ClientHandlerPrivate::on_tls_close(ev::io& watcher, int revents)
+{
+    std::cerr << "tls_close poll " << revents << "\n";
+    if (revents & ev::ERROR) [[unlikely]] {
+        watcher.stop();
+        std::cerr << "Error: failed to close TLS connection gracefully: EV_ERROR\n";
+        this->m_ctx.reset();
+        this->terminate();
+    }
+
+    auto res = tls_close(this->m_ctx.get());
+    if (res == TLS_WANT_POLLIN || res == TLS_WANT_POLLOUT) {
+        watcher.start(watcher.fd, res == TLS_WANT_POLLIN ? ev::READ : ev::WRITE);
+    }
+    else {
+        if (res == -1) {
+            std::cerr << std::format(
+                "Warning: failed to close TLS connection gracefully: {}\n", tls_error(this->m_ctx.get())
+            );
+        }
+
+        watcher.stop();
+        this->m_ctx.reset();
+        this->terminate();
+    }
+}
+
 void ClientHandlerPrivate::on_timeout(ev::timer& watcher, int)
 {
+    // Stop the watcher here because close_connection() may take some time to complete
     watcher.stop();
     this->close_connection();
 }
@@ -152,6 +215,18 @@ void ClientHandlerPrivate::close_connection(const std::string& error)
 {
     if (!error.empty()) {
         std::cerr << error << '\n';
+    }
+
+    if (this->m_ctx) {
+        if (int res = tls_close(this->m_ctx.get()); res == TLS_WANT_POLLIN || res == TLS_WANT_POLLOUT) {
+            this->m_timer.again();
+            this->m_io.stop();
+            this->m_io.set<ClientHandlerPrivate, &ClientHandlerPrivate::on_tls_close>(this);
+            this->m_io.start(this->m_io.fd, res == TLS_WANT_POLLIN ? ev::READ : ev::WRITE);
+            return;
+        }
+
+        this->m_ctx.reset();
     }
 
     this->terminate();
