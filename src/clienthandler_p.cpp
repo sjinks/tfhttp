@@ -179,7 +179,6 @@ void ClientHandlerPrivate::on_write(ev::io& watcher, int revents)
 
 void ClientHandlerPrivate::on_tls_close(ev::io& watcher, int revents)
 {
-    std::cerr << "tls_close poll " << revents << "\n";
     if (revents & ev::ERROR) [[unlikely]] {
         watcher.stop();
         std::cerr << "Error: failed to close TLS connection gracefully: EV_ERROR\n";
