@@ -25,7 +25,7 @@ RUN \
 RUN \
     export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y --no-install-recommends nlohmann-json3-dev libsqlite3-dev libev-dev && \
+    apt-get install -y --no-install-recommends nlohmann-json3-dev libsqlite3-dev libev-dev zlib1g-dev && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 RUN \
