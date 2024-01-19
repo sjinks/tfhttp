@@ -25,7 +25,7 @@ public:
 
     int accept(int fd);
 
-    static constexpr ev_tstamp READ_TIMEOUT = 15000;
+    static constexpr ev_tstamp READ_TIMEOUT = 15;
 
 private:
     ClientHandler* q_ptr;

@@ -235,9 +235,7 @@ int ClientHandlerPrivate::on_message_complete(llhttp_t* parser)
         }
     }
     catch (const std::exception& e) {
-        std::cerr << std::format(
-            "Error handling the request {} {}: {}: {}\n", llhttp_method_name(method), path, typeid(e).name(), e.what()
-        );
+        std::cerr << std::format("Error handling the request {} {}: {}\n", llhttp_method_name(method), path, e.what());
         client->generate_text_response(HTTP_STATUS_INTERNAL_SERVER_ERROR);
     }
 

@@ -86,7 +86,7 @@ int main()
         return 0;
     }
     catch (const std::exception& e) {
-        std::cerr << std::format("FATAL ERROR: {}: {}\n", typeid(e).name(), e.what());
+        std::cerr << std::format("FATAL ERROR: {}\n", e.what());
         return 1;
     }
 }
