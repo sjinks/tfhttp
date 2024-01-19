@@ -1,0 +1,63 @@
+# - Try to find libev
+# Once done this will define
+#  LIBLLHTTP_FOUND               - System has llhttp
+#  LIBLLHTTP_INCLUDE_DIRS        - The llhttp include directories
+#  LIBLLHTTP_LIBRARIES           - The libraries needed to use llhttp
+#  LIBLLHTTP_STATIC_INCLUDE_DIRS - The llhttp static include directories
+#  LIBLLHTTP_STATIC_LIBRARIES    - The libraries needed to use llhttp statically
+
+pkg_check_modules(LIBLLHTTP QUIET llhttp)
+if (NOT LIBLLHTTP_FOUND)
+    find_path(
+        LIBLLHTTP_INCLUDE_DIR
+        NAMES llhttp.h
+    )
+
+    set(SAVED_CMAKE_FIND_LIBRARY_SUFFIXES "${CMAKE_FIND_LIBRARY_SUFFIXES}")
+        set(CMAKE_FIND_LIBRARY_SUFFIXES "${CMAKE_STATIC_LIBRARY_SUFFIX}")
+        find_library(LIBLLHTTP_STATIC_LIBRARY NAMES llhttp)
+        set(CMAKE_FIND_LIBRARY_SUFFIXES "${CMAKE_SHARED_LIBRARY_SUFFIX}")
+        find_library(LIBLLHTTP_SHARED_LIBRARY NAMES llhttp)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES "${SAVED_CMAKE_FIND_LIBRARY_SUFFIXES}")
+    unset(SAVED_CMAKE_FIND_LIBRARY_SUFFIXES)
+
+    if(LIBLLHTTP_SHARED_LIBRARY)
+        set(LIBLLHTTP_LIBRARY ${LIBLLHTTP_SHARED_LIBRARY})
+    elseif(LIBLLHTTP_STATIC_LIBRARY)
+        set(LIBLLHTTP_LIBRARY ${LIBLLHTTP_STATIC_LIBRARY})
+    endif()
+
+    if(LIBLLHTTP_INCLUDE_DIR)
+        file(STRINGS "${LIBLLHTTP_INCLUDE_DIR}/llhttp.h" LIBLLHTTP_VERSION_MAJOR REGEX "^#define[ \t]+LLHTTP_VERSION_MAJOR[ \t]+[0-9]+")
+        file(STRINGS "${LIBLLHTTP_INCLUDE_DIR}/llhttp.h" LIBLLHTTP_VERSION_MINOR REGEX "^#define[ \t]+LLHTTP_VERSION_MINOR[ \t]+[0-9]+")
+        string(REGEX REPLACE "[^0-9]+" "" LIBLLHTTP_VERSION_MAJOR "${LIBLLHTTP_VERSION_MAJOR}")
+        string(REGEX REPLACE "[^0-9]+" "" LIBLLHTTP_VERSION_MINOR "${LIBLLHTTP_VERSION_MINOR}")
+        set(LIBLLHTTP_VERSION "${LIBLLHTTP_VERSION_MAJOR}.${LIBLLHTTP_VERSION_MINOR}")
+        unset(LIBLLHTTP_VERSION_MINOR)
+        unset(LIBLLHTTP_VERSION_MAJOR)
+    endif()
+
+    include(FindPackageHandleStandardArgs)
+    find_package_handle_standard_args(
+        libllhttp
+        REQUIRED_VARS LIBLLHTTP_LIBRARY LIBLLHTTP_INCLUDE_DIR
+        VERSION_VAR LIBLLHTTP_VERSION
+    )
+
+    if(LIBLLHTTP_FOUND)
+        if(LIBLLHTTP_SHARED_LIBRARY)
+            set(LIBLLHTTP_LIBRARIES ${LIBLLHTTP_SHARED_LIBRARY})
+        else()
+            set(LIBLLHTTP_LIBRARIES ${LIBLLHTTP_STATIC_LIBRARY})
+        endif()
+
+        set(LIBLLHTTP_INCLUDE_DIRS  ${LIBLLHTTP_INCLUDE_DIR})
+
+        set(LIBLLHTTP_STATIC_INCLUDE_DIRS ${LIBLLHTTP_INCLUDE_DIRS})
+        if(LIBLLHTTP_STATIC_LIBRARY)
+            set(LIBLLHTTP_STATIC_LIBRARIES ${LIBLLHTTP_STATIC_LIBRARY})
+        endif()
+    endif()
+
+    mark_as_advanced(LIBLLHTTP_INCLUDE_DIR LIBLLHTTP_SHARED_LIBRARY LIBLLHTTP_STATIC_LIBRARY)
+endif()
