@@ -7,7 +7,7 @@ ENV LANGUAGE=en_US
 RUN \
     export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y --no-install-recommends bash sudo ca-certificates wget cmake git make python3-minimal python3-whichcraft pkgconf valgrind && \
+    apt-get install -y --no-install-recommends bash sudo ca-certificates wget file cmake git make pkgconf valgrind autoconf automake libtool m4 ninja-build && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 RUN \
@@ -39,14 +39,14 @@ WORKDIR /usr/src
 RUN \
     git clone https://github.com/ada-url/ada.git --depth 1 -b v2.7.4 && \
     cd ada && \
-    cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DADA_TOOLS=off -DADA_TESTING=off && \
+    cmake -B build -DCMAKE_BUILD_TYPE=Release -DADA_TOOLS=off -DADA_TESTING=off && \
     cmake --build build && \
     cmake --install build
 
 RUN \
     wget -q -O - https://github.com/nodejs/llhttp/archive/refs/tags/release/v9.1.3.tar.gz | tar xzf - && \
     cd llhttp-release-v* && \
-    cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON && \
+    cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON && \
     cmake --build build && \
     cmake --install build
 
