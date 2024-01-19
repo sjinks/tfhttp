@@ -21,8 +21,13 @@ ClientHandlerPrivate::ClientHandlerPrivate(
 ClientHandlerPrivate::~ClientHandlerPrivate()
 {
     const int fd = this->m_io.fd;
-    this->stop_watchers();
-    close(fd);
+    this->m_io.stop();
+    this->m_timer.stop();
+
+    if (fd != -1) {
+        shutdown(fd, SHUT_RDWR);
+        close(fd);
+    }
 }
 
 int ClientHandlerPrivate::accept(int fd)
@@ -31,78 +36,134 @@ int ClientHandlerPrivate::accept(int fd)
     this->m_io.start(fd, ev::READ);
 
     this->m_timer.set<ClientHandlerPrivate, &ClientHandlerPrivate::on_timeout>(this);
-    this->m_timer.start(ClientHandlerPrivate::READ_TIMEOUT, 0);
+    this->m_timer.set(0.0, ClientHandlerPrivate::READ_TIMEOUT);
+    this->m_timer.again();
 
     return 0;
 }
 
-void ClientHandlerPrivate::on_read(ev::io& watcher, int)  // NOSONAR(cpp:S995)
+void ClientHandlerPrivate::on_read(ev::io& watcher, int revents)
 {
+    if (revents & ev::ERROR) [[unlikely]] {
+        this->close_connection("Error: failed to read from socket: EV_ERROR");
+        return;
+    }
+
     constexpr std::size_t BUFFER_SIZE = 8192;
     std::array<char, BUFFER_SIZE> buffer{};
+    int new_events = 0;
+    std::string error;
+
     const ssize_t received = recv(watcher.fd, buffer.data(), sizeof(buffer), 0);
-    if (received <= 0) [[unlikely]] {
-        std::cerr << std::format(
-            "Error: failed to read from socket: {}\n", std::error_code(errno, std::system_category()).message()
-        );
-        this->stop_watchers();
-        this->terminate();
-        return;
+    if (received < 0) [[unlikely]] {
+        error = std::error_code(errno, std::system_category()).message();
     }
 
-    if (auto status = llhttp_execute(&this->m_parser, buffer.data(), static_cast<std::size_t>(received));
-        status != HPE_OK) [[unlikely]] {
-        std::cerr << std::format("Error: failed to parse HTTP request: {}\n", llhttp_errno_name(status));
-        this->stop_watchers();
-        this->terminate();
-        return;
+    if (received > 0) {
+        if (auto status = llhttp_execute(&this->m_parser, buffer.data(), static_cast<std::size_t>(received));
+            status != HPE_OK) [[unlikely]] {
+            error = std::format("Error: failed to parse HTTP request: {}", llhttp_errno_name(status));
+        }
+        else if (!this->m_done) {
+            new_events = ev::READ;
+        }
+    }
+    else if (received == 0) {
+        if (auto status = llhttp_finish(&this->m_parser); status != HPE_OK) [[unlikely]] {
+            error = std::format("Error: failed to parse HTTP request: {}", llhttp_errno_name(status));
+        }
+        else if (!this->m_done) {
+            error = "Incomplete HTTP request, closing connection";
+        }
+    }
+    else if (!error.empty()) {
+        error = std::format("Error: failed to read from socket: {}", error);
     }
 
-    this->m_timer.again();
+    if (!error.empty()) {
+        this->close_connection(error);
+    }
+    else if (!this->m_done && new_events != 0) {
+        if (new_events != ev::READ) {
+            watcher.start(watcher.fd, new_events);
+        }
+
+        this->m_timer.again();
+    }
 }
 
-void ClientHandlerPrivate::on_write(ev::io& watcher, int)
+void ClientHandlerPrivate::on_write(ev::io& watcher, int revents)
 {
+    if (revents & ev::ERROR) [[unlikely]] {
+        this->close_connection("Error: failed to write to socket: EV_ERROR");
+        return;
+    }
+
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    const auto* buf       = this->m_response.data() + this->m_offset;
-    auto len              = this->m_response.size() - this->m_offset;
+    const auto* buf = this->m_response.data() + this->m_offset;
+    auto len        = this->m_response.size() - this->m_offset;
+    int new_events  = 0;
+    std::string error;
+
     const ssize_t written = send(watcher.fd, buf, len, 0);
-
-    if (written <= 0) [[unlikely]] {
-        std::cerr << std::format(
-            "Error: failed to write to socket: {}\n", std::error_code(errno, std::system_category()).message()
-        );
-        this->stop_watchers();
-        this->terminate();
-        return;
+    if (written < 0) [[unlikely]] {
+        error = std::error_code(errno, std::system_category()).message();
     }
 
-    this->m_offset += static_cast<std::size_t>(written);
-    if (this->m_offset == this->m_response.size()) {
-        this->stop_watchers();
-        this->terminate();
-        return;
+    if (written > 0) {
+        this->m_offset += static_cast<std::size_t>(written);
+        if (this->m_offset != this->m_response.size()) {
+            new_events = ev::WRITE;
+        }
+    }
+    else if (written == 0) {
+        if (this->m_offset != this->m_response.size()) {
+            error = "Warning: failed to write to socket: connection closed";
+        }
+    }
+    else {
+        error = std::format("Failed to write to socket: {}", error);
+    }
+
+    if (!error.empty()) [[unlikely]] {
+        std::cerr << error << '\n';
+        assert(new_events == 0);
+    }
+
+    if (new_events == 0) {
+        this->close_connection();
+    }
+    else {
+        if (new_events != ev::WRITE) {
+            watcher.start(watcher.fd, new_events);
+        }
+
+        this->m_timer.again();
     }
 }
 
-void ClientHandlerPrivate::on_timeout(ev::timer&, int)  // NOSONAR
+void ClientHandlerPrivate::on_timeout(ev::timer& watcher, int)
 {
-    this->stop_watchers();
+    watcher.stop();
+    this->close_connection();
+}
+
+void ClientHandlerPrivate::close_connection(const std::string& error)
+{
+    if (!error.empty()) {
+        std::cerr << error << '\n';
+    }
+
     this->terminate();
-}
-
-void ClientHandlerPrivate::stop_watchers()
-{
-    const int fd = this->m_io.fd;
-    this->m_io.stop();
-    this->m_timer.stop();
-    close(fd);
 }
 
 void ClientHandlerPrivate::terminate()
 {
     if (auto server = this->m_server.lock(); server) [[likely]] {
         server->remove_handler(this->q_ptr);
+    }
+    else {
+        delete this;
     }
 }
 
@@ -186,6 +247,10 @@ int ClientHandlerPrivate::on_message_complete(llhttp_t* parser)
     auto path    = client->m_url.get_pathname();
     auto method  = client->m_method;
 
+    client->m_io.stop();
+    client->m_timer.stop();
+    client->m_done = true;
+
     std::cout << std::format(
         "{0:%F} {0:%X%z} {1} {2}\n", std::chrono::system_clock::now(), llhttp_method_name(method), path
     );
@@ -239,8 +304,9 @@ int ClientHandlerPrivate::on_message_complete(llhttp_t* parser)
         client->generate_text_response(HTTP_STATUS_INTERNAL_SERVER_ERROR);
     }
 
-    client->m_io.set(ev::WRITE);
     client->m_io.set<ClientHandlerPrivate, &ClientHandlerPrivate::on_write>(client);
+    client->m_io.start(client->m_io.fd, ev::WRITE);
+    client->m_timer.again();
 
     return HPE_OK;
 }

@@ -41,12 +41,13 @@ private:
     std::string m_body{};
     std::string m_response;
     std::size_t m_offset = 0;
+    bool m_done          = false;
 
     void on_read(ev::io& watcher, int revents);
     void on_write(ev::io& watcher, int revents);
     void on_timeout(ev::timer& timer, int revents);
 
-    void stop_watchers();
+    void close_connection(const std::string& error = std::string());
     void terminate();
 
     void handle_get_state(const std::string& slug);
