@@ -6,7 +6,7 @@ COPY . /app
 WORKDIR /app
 
 RUN \
-    cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel && \
+    cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_STATIC_BINARY=on && \
     cmake --build build && \
     strip --strip-unneeded build/src/tfhttp
 
