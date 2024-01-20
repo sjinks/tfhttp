@@ -33,6 +33,7 @@
 #include <netinet/in.h>
 #include <sqlite3pp.h>
 #include <sys/socket.h>
+#include <tls.h>
 #include <unistd.h>
 #include <nlohmann/json.hpp>
 

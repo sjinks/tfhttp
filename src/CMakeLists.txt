@@ -23,6 +23,7 @@ option(FORCE_EXTERNAL_LIBEV       "Do not use system libev"     OFF)
 option(FORCE_EXTERNAL_LIBADA      "Do not use system libada"    OFF)
 option(FORCE_EXTERNAL_LIBLLHTTP   "Do not use system libllhttp" OFF)
 option(FORCE_EXTERNAL_SQLITE3     "Do not use system sqlite3"   OFF)
+option(FORCE_EXTERNAL_LIBTLS      "Do not use system libtls"    OFF)
 
 if(BUILD_STATIC_BINARY)
     set(CMAKE_FIND_LIBRARY_SUFFIXES "${CMAKE_STATIC_LIBRARY_SUFFIX}")
@@ -50,6 +51,11 @@ add_executable(
     server_p.cpp
     serversocket.cpp
     serversocket_p.cpp
+    tlsconfigurator.cpp
+    tlsconfigurator_p.cpp
+    tlsservercontext.cpp
+    tlsservercontext_p.cpp
+    tlsutils.cpp
 )
 
 target_precompile_headers(tfhttp PRIVATE stdafx.h)
@@ -68,6 +74,10 @@ endif()
 
 if(NOT FORCE_EXTERNAL_SQLITE3)
     find_package(libsqlite3)
+endif()
+
+if(NOT FORCE_EXTERNAL_LIBTLS)
+    find_package(libtls)
 endif()
 
 if(BUILD_MOSTLY_STATIC_BINARY)
@@ -220,6 +230,26 @@ else()
     target_include_directories(tfhttp PRIVATE ${NLOHMANN_JSON})
 endif()
 
+if(NOT LIBTLS_FOUND)
+    ExternalProject_Add(
+        libtls
+        GIT_REPOSITORY https://git.causal.agency/libretls
+        GIT_TAG 3.8.1
+        GIT_SHALLOW ON
+        CONFIGURE_COMMAND autoreconf -i <SOURCE_DIR> && <SOURCE_DIR>/configure --disable-dependency-tracking --disable-shared --enable-static --prefix=${CMAKE_CURRENT_BINARY_DIR}/libtls CC=${CMAKE_C_COMPILER} AR=${CMAKE_AR} RANLIB=${CMAKE_RANLIB}
+    )
+
+    set(LIBTLS_LIBRARIES tls;ssl;crypto)
+    set(LIBTLS_LIBRARY_DIRS "${CMAKE_CURRENT_BINARY_DIR}/libtls/lib")
+    set(LIBTLS_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}/libtls/include")
+
+    set(LIBTLS_STATIC_LIBRARIES ${LIBTLS_LIBRARIES})
+    set(LIBTLS_STATIC_LIBRARY_DIRS ${LIBTLS_LIBRARY_DIRS})
+    set(LIBTLS_STATIC_INCLUDE_DIRS ${LIBTLS_INCLUDE_DIRS})
+
+    add_dependencies(tfhttp libtls)
+endif()
+
 if(BUILD_STATIC_BINARY OR BUILD_MOSTLY_STATIC_BINARY)
     target_include_directories(tfhttp PRIVATE ${LIBEV_STATIC_INCLUDE_DIRS})
     target_link_directories(tfhttp PRIVATE ${LIBEV_STATIC_LIBRARY_DIRS})
@@ -274,6 +304,20 @@ else()
     target_include_directories(tfhttp PRIVATE ${LIBSQLITE3_INCLUDE_DIRS})
     target_link_directories(tfhttp PRIVATE ${LIBSQLITE3_LIBRARY_DIRS})
     target_link_libraries(tfhttp PRIVATE ${LIBSQLITE3_LIBRARIES})
+endif()
+
+if(BUILD_STATIC_BINARY OR BUILD_MOSTLY_STATIC_BINARY)
+    target_include_directories(tfhttp PRIVATE ${LIBTLS_STATIC_INCLUDE_DIRS})
+    target_link_directories(tfhttp PRIVATE ${LIBTLS_STATIC_LIBRARY_DIRS})
+    if(BUILD_MOSTLY_STATIC_BINARY)
+        target_link_libraries(tfhttp PRIVATE -Wl,-Bstatic;${LIBTLS_STATIC_LIBRARIES};-Wl,-Bdynamic)
+    else()
+        target_link_libraries(tfhttp PRIVATE ${LIBTLS_STATIC_LIBRARIES})
+    endif()
+else()
+    target_include_directories(tfhttp PRIVATE ${LIBTLS_INCLUDE_DIRS})
+    target_link_directories(tfhttp PRIVATE ${LIBTLS_LIBRARY_DIRS})
+    target_link_libraries(tfhttp PRIVATE ${LIBTLS_LIBRARIES})
 endif()
 
 if(BUILD_MOSTLY_STATIC_BINARY)

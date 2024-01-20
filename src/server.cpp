@@ -28,3 +28,8 @@ void Server::remove_handler(ClientHandler* handler)
 {
     this->d_func()->remove_handler(handler);
 }
+
+void Server::set_tls_context(const std::shared_ptr<TLSServerContext>& context)
+{
+    this->d_func()->set_tls_context(context);
+}

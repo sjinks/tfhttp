@@ -7,14 +7,16 @@
 #include <ev++.h>
 #include <llhttp.h>
 #include "database.h"
+#include "tlsutils.h"
 
 class ClientHandler;
 class Server;
+struct tls;
 
 class ClientHandlerPrivate {
 public:
     ClientHandlerPrivate(
-        ClientHandler* q_ptr, const ev::loop_ref& loop, const std::shared_ptr<Server>& server,
+        ClientHandler* q_ptr, tls* ctx, const ev::loop_ref& loop, const std::shared_ptr<Server>& server,
         const std::shared_ptr<Database>& database
     );
     ClientHandlerPrivate(const ClientHandlerPrivate&)            = delete;
@@ -29,6 +31,7 @@ public:
 
 private:
     ClientHandler* q_ptr;
+    std::unique_ptr<tls, decltype(&dispose_tls_context)> m_ctx;
     ev::loop_ref m_loop;
     std::weak_ptr<Server> m_server;
     std::shared_ptr<Database> m_database;
@@ -45,6 +48,7 @@ private:
 
     void on_read(ev::io& watcher, int revents);
     void on_write(ev::io& watcher, int revents);
+    void on_tls_close(ev::io& watcher, int revents);
     void on_timeout(ev::timer& timer, int revents);
 
     void close_connection(const std::string& error = std::string());

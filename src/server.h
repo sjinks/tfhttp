@@ -8,6 +8,7 @@
 class ClientHandler;
 class Database;
 class ServerPrivate;
+class TLSServerContext;
 
 class Server : public std::enable_shared_from_this<Server> {
 private:
@@ -31,6 +32,8 @@ public:
 
     std::uint16_t run();
     void remove_handler(ClientHandler* handler);
+
+    void set_tls_context(const std::shared_ptr<TLSServerContext>& context);
 
 private:
     std::unique_ptr<ServerPrivate> d_ptr;

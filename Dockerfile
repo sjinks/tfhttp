@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Do not install libev-dev because we want to use a custom build.
 RUN \
     apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates cmake file git clang make nlohmann-json3-dev pkgconf tcl && \
+    apt-get install -y --no-install-recommends ca-certificates cmake file git clang make nlohmann-json3-dev libtls-dev libssl-dev pkgconf tcl && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 COPY . /app
 WORKDIR /app

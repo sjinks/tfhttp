@@ -2,6 +2,9 @@
 #include <iostream>
 #include "database.h"
 #include "server.h"
+#include "tlsconfigurator.h"
+#include "tlsexception.h"
+#include "tlsservercontext.h"
 
 namespace {
 void signal_watcher(ev::sig& watcher, int)
@@ -55,6 +58,19 @@ void destroy_loop(const ev::loop_ref* loop)
     ev_loop_destroy(*loop);
 }
 
+void replace_tls_context(std::shared_ptr<TLSServerContext>& old_ctx, const std::shared_ptr<TLSServerContext>& new_ctx)
+{
+    try {
+        new_ctx->get_context();
+    }
+    catch (const TLSException& e) {
+        std::cerr << std::format("Error: failed to reload TLS context: {}\n", e.what());
+        return;
+    }
+
+    old_ctx = new_ctx;
+}
+
 }  // namespace
 
 int main()
@@ -79,7 +95,15 @@ int main()
         sigterm_watcher.set<signal_watcher>();
         sigterm_watcher.start(SIGTERM);
 
+        TLSConfigurator tlsconf("TFHTTP_");
+        auto ctx = tlsconf.configure();
+        if (ctx) {
+            ctx->get_context();
+            tlsconf.watch([&ctx](std::shared_ptr<TLSServerContext> new_ctx) { replace_tls_context(ctx, new_ctx); });
+        }
+
         auto server = Server::create(loop, address, port, database);
+        server->set_tls_context(ctx);
         server->run();
         loop.run(0);
 

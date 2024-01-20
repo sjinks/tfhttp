@@ -7,11 +7,13 @@
 class ClientHandlerPrivate;
 class Database;
 class Server;
+struct tls;
 
 class ClientHandler {
 public:
     ClientHandler(
-        const ev::loop_ref& loop, const std::shared_ptr<Server>& server, const std::shared_ptr<Database>& database
+        tls* context, const ev::loop_ref& loop, const std::shared_ptr<Server>& server,
+        const std::shared_ptr<Database>& database
     );
     ClientHandler(const ClientHandler&)            = delete;
     ClientHandler(ClientHandler&&)                 = delete;

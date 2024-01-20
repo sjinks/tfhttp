@@ -1,6 +1,6 @@
 FROM alpine:3.19.0@sha256:51b67269f354137895d43f3b3d810bfacd3945438e94dc5ac55fdac340352f48 AS build
 
-RUN apk add --no-cache cmake make libc-dev clang17 git file libev-dev ada-static ada-dev sqlite-dev sqlite-static sqlite3pp nlohmann-json
+RUN apk add --no-cache cmake make libc-dev clang17 git file libev-dev ada-static ada-dev sqlite-dev sqlite-static sqlite3pp nlohmann-json libretls-static libretls-dev openssl-libs-static
 WORKDIR /
 COPY . /app
 WORKDIR /app
