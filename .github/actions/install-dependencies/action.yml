@@ -7,7 +7,7 @@ runs:
       shell: bash
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang-tools ca-certificates python3-minimal python3-whichcraft nlohmann-json3-dev libsqlite3-dev libev-dev pkgconf
+        sudo apt-get install -y clang-tools ca-certificates python3-minimal python3-whichcraft nlohmann-json3-dev libsqlite3-dev libev-dev pkgconf libtls-dev libssl-dev
 
     - name: Install newer Clang
       shell: bash
