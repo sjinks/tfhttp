@@ -12,4 +12,5 @@ RUN \
 
 FROM scratch
 COPY --from=build /app/build/src/tfhttp /tfhttp
+USER 20000:20000
 ENTRYPOINT ["/tfhttp"]
