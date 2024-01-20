@@ -26,7 +26,7 @@ private:
     [[nodiscard]] bool has_lock(const std::string& slug, const std::string& lock_id);
 
     [[nodiscard]] static std::string generate_uuid();
-    void run_query(const char* query, std::initializer_list<std::string> args);
+    void run_query(const char* query, const std::initializer_list<std::string>& args);
     void execute(const char* query);
 
     template<typename F, typename... Args>

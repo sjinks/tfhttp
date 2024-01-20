@@ -15,7 +15,7 @@ class TLSServerContext;
 class ServerPrivate {
 public:
     ServerPrivate(
-        Server* q_ptr, const ev::loop_ref& loop, const std::string& ip, std::uint16_t port,
+        Server* q, const ev::loop_ref& loop, const std::string& ip, std::uint16_t port,
         const std::shared_ptr<Database>& database
     );
 

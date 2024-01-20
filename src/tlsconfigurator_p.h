@@ -12,14 +12,12 @@ class TLSConfiguratorPrivate {
 public:
     explicit TLSConfiguratorPrivate(const std::string& env_prefix);
 
-    std::shared_ptr<TLSServerContext> configure() const;
-    void watch(TLSConfigurator::watch_callback_t callback);
+    [[nodiscard]] std::shared_ptr<TLSServerContext> configure() const;
+    void watch(const TLSConfigurator::watch_callback_t& callback);
 
-    static constexpr ev_tstamp RECONFIGURATION_DELAY = 15;
+    static constexpr ev_tstamp RECONFIGURATION_DELAY = 15.0;
 
 private:
-    std::string m_env_prefix;
-    bool m_https = false;
     std::string m_certificate{};
     std::string m_key{};
     std::string m_ca{};
@@ -27,11 +25,12 @@ private:
     std::string m_tls_protocols{};
     std::string m_tls_ciphers{};
     std::string m_tls_curves{};
-    bool m_tls_verify_client = false;
-    bool m_tls_enable_dhe    = false;
     ev::stat m_stat_watcher{};
     ev::timer m_timer{};
     TLSConfigurator::watch_callback_t m_callback = nullptr;
+    bool m_https                                 = false;
+    bool m_tls_verify_client                     = false;
+    bool m_tls_enable_dhe                        = false;
 
     void on_stat(ev::stat& watcher, int revents);
     void on_timeout(ev::timer& timer, int revents);

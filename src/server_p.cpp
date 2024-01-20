@@ -8,10 +8,10 @@
 #include "tlsservercontext.h"
 
 ServerPrivate::ServerPrivate(
-    Server* q_ptr, const ev::loop_ref& loop, const std::string& ip, std::uint16_t port,
+    Server* q, const ev::loop_ref& loop, const std::string& ip, std::uint16_t port,
     const std::shared_ptr<Database>& database
 )
-    : q_ptr(q_ptr), m_loop(loop), m_socket(ip, port), m_accept_watcher(loop), m_database(database)
+    : q_ptr(q), m_loop(loop), m_socket(ip, port), m_accept_watcher(loop), m_database(database)
 {}
 
 std::uint16_t ServerPrivate::run()

@@ -16,7 +16,7 @@ struct tls;
 class ClientHandlerPrivate {
 public:
     ClientHandlerPrivate(
-        ClientHandler* q_ptr, tls* ctx, const ev::loop_ref& loop, const std::shared_ptr<Server>& server,
+        ClientHandler* q, tls* ctx, const ev::loop_ref& loop, const std::shared_ptr<Server>& server,
         const std::shared_ptr<Database>& database
     );
     ClientHandlerPrivate(const ClientHandlerPrivate&)            = delete;
@@ -39,12 +39,12 @@ private:
     llhttp_settings_t m_settings{};
     ev::io m_io;
     ev::timer m_timer;
-    llhttp_method_t m_method = HTTP_GET;
     ada::url_aggregator m_url{};
     std::string m_body{};
     std::string m_response;
-    std::size_t m_offset = 0;
-    bool m_done          = false;
+    std::size_t m_offset     = 0;
+    llhttp_method_t m_method = HTTP_GET;
+    bool m_done              = false;
 
     void on_read(ev::io& watcher, int revents);
     void on_write(ev::io& watcher, int revents);

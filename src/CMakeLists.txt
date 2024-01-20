@@ -7,6 +7,7 @@ include(ExternalProject)
 include(FindPkgConfig)
 
 add_compile_options(-Wall -Wextra -pedantic)
+# add_compile_options(-Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-pre-c++17-compat -Wno-c++20-compat -Wno-clang-diagnostic-unused-macros)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -53,6 +54,7 @@ add_executable(
     serversocket_p.cpp
     tlsconfigurator.cpp
     tlsconfigurator_p.cpp
+    tlsexception.cpp
     tlsservercontext.cpp
     tlsservercontext_p.cpp
     tlsutils.cpp

@@ -45,7 +45,7 @@ void TLSServerContextPrivate::enable_dhe()
 
 void TLSServerContextPrivate::set_protocols(const std::string& protocols)
 {
-    std::uint32_t p;
+    std::uint32_t p = TLS_PROTOCOLS_DEFAULT;
 
     if (tls_config_parse_protocols(&p, protocols.c_str()) != 0) {
         throw TLSException("Failed to parse protocols");

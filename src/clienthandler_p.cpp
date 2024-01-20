@@ -2,12 +2,13 @@
 #include "clienthandler_p.h"
 #include "database.h"
 #include "server.h"
+#include "utils.h"
 
 ClientHandlerPrivate::ClientHandlerPrivate(
-    ClientHandler* q_ptr, tls* ctx, const ev::loop_ref& loop, const std::shared_ptr<Server>& server,
+    ClientHandler* q, tls* ctx, const ev::loop_ref& loop, const std::shared_ptr<Server>& server,
     const std::shared_ptr<Database>& database
 )
-    : q_ptr(q_ptr), m_ctx(ctx, &dispose_tls_context), m_loop(loop), m_server(server), m_database(database), m_io(loop),
+    : q_ptr(q), m_ctx(ctx, &dispose_tls_context), m_loop(loop), m_server(server), m_database(database), m_io(loop),
       m_timer(loop)
 {
     llhttp_settings_init(&this->m_settings);
@@ -49,16 +50,16 @@ int ClientHandlerPrivate::accept(int fd)
 
 void ClientHandlerPrivate::on_read(ev::io& watcher, int revents)
 {
-    if (revents & ev::ERROR) [[unlikely]] {
+    if (is_ev_error(revents)) [[unlikely]] {
         this->close_connection("Error: failed to read from socket: EV_ERROR");
         return;
     }
 
     constexpr std::size_t BUFFER_SIZE = 8192;
     std::array<char, BUFFER_SIZE> buffer{};
-    int new_events = 0;
-    ssize_t received;
-    std::string error;
+    int new_events   = 0;
+    ssize_t received = 0;
+    std::string error{};
 
     if (this->m_ctx) {
         received = tls_read(this->m_ctx.get(), buffer.data(), sizeof(buffer));
@@ -114,17 +115,26 @@ void ClientHandlerPrivate::on_read(ev::io& watcher, int revents)
 
 void ClientHandlerPrivate::on_write(ev::io& watcher, int revents)
 {
-    if (revents & ev::ERROR) [[unlikely]] {
+    if (is_ev_error(revents)) [[unlikely]] {
         this->close_connection("Error: failed to write to socket: EV_ERROR");
         return;
     }
 
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    const auto* buf = this->m_response.data() + this->m_offset;
-    auto len        = this->m_response.size() - this->m_offset;
+    const char* buf = nullptr;
+    std::size_t len = 0;
+
+    if (this->m_offset <= this->m_response.size()) {
+        buf = &this->m_response[this->m_offset];
+        len = this->m_response.size() - this->m_offset;
+    }
+    else [[unlikely]] {
+        this->close_connection("Error: failed to write to socket: offset > response size");
+        return;
+    }
+
     int new_events  = 0;
-    std::string error;
-    ssize_t written;
+    ssize_t written = 0;
+    std::string error{};
 
     if (this->m_ctx) {
         written = tls_write(this->m_ctx.get(), buf, len);
@@ -179,19 +189,18 @@ void ClientHandlerPrivate::on_write(ev::io& watcher, int revents)
 
 void ClientHandlerPrivate::on_tls_close(ev::io& watcher, int revents)
 {
-    if (revents & ev::ERROR) [[unlikely]] {
-        watcher.stop();
+    if (is_ev_error(revents)) [[unlikely]] {
         std::cerr << "Error: failed to close TLS connection gracefully: EV_ERROR\n";
         this->m_ctx.reset();
         this->terminate();
     }
 
-    auto res = tls_close(this->m_ctx.get());
+    const auto res = tls_close(this->m_ctx.get());
     if (res == TLS_WANT_POLLIN || res == TLS_WANT_POLLOUT) {
         watcher.start(watcher.fd, res == TLS_WANT_POLLIN ? ev::READ : ev::WRITE);
     }
     else {
-        if (res == -1) {
+        if (res == -1) [[unlikely]] {
             std::cerr << std::format(
                 "Warning: failed to close TLS connection gracefully: {}\n", tls_error(this->m_ctx.get())
             );
@@ -203,21 +212,21 @@ void ClientHandlerPrivate::on_tls_close(ev::io& watcher, int revents)
     }
 }
 
-void ClientHandlerPrivate::on_timeout(ev::timer& watcher, int)
+void ClientHandlerPrivate::on_timeout(ev::timer& timer, int)
 {
     // Stop the watcher here because close_connection() may take some time to complete
-    watcher.stop();
+    timer.stop();
     this->close_connection();
 }
 
 void ClientHandlerPrivate::close_connection(const std::string& error)
 {
-    if (!error.empty()) {
+    if (!error.empty()) [[unlikely]] {
         std::cerr << error << '\n';
     }
 
     if (this->m_ctx) {
-        if (int res = tls_close(this->m_ctx.get()); res == TLS_WANT_POLLIN || res == TLS_WANT_POLLOUT) {
+        if (const int res = tls_close(this->m_ctx.get()); res == TLS_WANT_POLLIN || res == TLS_WANT_POLLOUT) {
             this->m_timer.again();
             this->m_io.stop();
             this->m_io.set<ClientHandlerPrivate, &ClientHandlerPrivate::on_tls_close>(this);

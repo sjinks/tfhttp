@@ -12,7 +12,7 @@ struct tls;
 class ClientHandler {
 public:
     ClientHandler(
-        tls* context, const ev::loop_ref& loop, const std::shared_ptr<Server>& server,
+        tls* ctx, const ev::loop_ref& loop, const std::shared_ptr<Server>& server,
         const std::shared_ptr<Database>& database
     );
     ClientHandler(const ClientHandler&)            = delete;

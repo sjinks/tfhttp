@@ -13,7 +13,7 @@ std::shared_ptr<TLSServerContext> TLSConfigurator::configure() const
     return this->d_func()->configure();
 }
 
-void TLSConfigurator::watch(watch_callback_t callback)
+void TLSConfigurator::watch(const watch_callback_t& callback)
 {
     this->d_func()->watch(callback);
 }

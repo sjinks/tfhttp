@@ -3,10 +3,11 @@
 #include <string>
 #include "tlsexception.h"
 #include "tlsservercontext.h"
+#include "utils.h"
 
 namespace {
 
-std::string getenv(const std::string& prefix, const char* name)
+std::string get_env(const std::string& prefix, const char* name)
 {
     const std::string env_name = prefix + name;
     const char* value          = std::getenv(env_name.c_str());  // NOLINT(concurrency-mt-unsafe)
@@ -15,24 +16,24 @@ std::string getenv(const std::string& prefix, const char* name)
 
 }  // namespace
 
-TLSConfiguratorPrivate::TLSConfiguratorPrivate(const std::string& env_prefix) : m_env_prefix(env_prefix)
+TLSConfiguratorPrivate::TLSConfiguratorPrivate(const std::string& env_prefix)
 {
-    this->m_https               = getenv(this->m_env_prefix, "HTTPS") == "1";
-    this->m_certificate         = getenv(this->m_env_prefix, "CERTIFICATE");
-    this->m_key                 = getenv(this->m_env_prefix, "PRIVATE_KEY");
-    this->m_ca                  = getenv(this->m_env_prefix, "CA_CERTIFICATE");
-    this->m_trusted_certificate = getenv(this->m_env_prefix, "TRUSTED_CERTIFICATE");
-    this->m_tls_protocols       = getenv(this->m_env_prefix, "TLS_PROTOCOLS");
-    this->m_tls_ciphers         = getenv(this->m_env_prefix, "TLS_CIPHERS");
-    this->m_tls_curves          = getenv(this->m_env_prefix, "TLS_CURVES");
-    this->m_tls_verify_client   = getenv(this->m_env_prefix, "TLS_VERIFY_CLIENT") == "1";
-    this->m_tls_enable_dhe      = getenv(this->m_env_prefix, "TLS_ENABLE_DHE") == "1";
+    this->m_https               = get_env(env_prefix, "HTTPS") == "1";
+    this->m_certificate         = get_env(env_prefix, "CERTIFICATE");
+    this->m_key                 = get_env(env_prefix, "PRIVATE_KEY");
+    this->m_ca                  = get_env(env_prefix, "CA_CERTIFICATE");
+    this->m_trusted_certificate = get_env(env_prefix, "TRUSTED_CERTIFICATE");
+    this->m_tls_protocols       = get_env(env_prefix, "TLS_PROTOCOLS");
+    this->m_tls_ciphers         = get_env(env_prefix, "TLS_CIPHERS");
+    this->m_tls_curves          = get_env(env_prefix, "TLS_CURVES");
+    this->m_tls_verify_client   = get_env(env_prefix, "TLS_VERIFY_CLIENT") == "1";
+    this->m_tls_enable_dhe      = get_env(env_prefix, "TLS_ENABLE_DHE") == "1";
 }
 
 std::shared_ptr<TLSServerContext> TLSConfiguratorPrivate::configure() const
 {
     if (!this->m_https) {
-        return std::shared_ptr<TLSServerContext>(nullptr);
+        return {};
     }
 
     auto context = TLSServerContext::create();
@@ -71,7 +72,7 @@ std::shared_ptr<TLSServerContext> TLSConfiguratorPrivate::configure() const
     return context;
 }
 
-void TLSConfiguratorPrivate::watch(TLSConfigurator::watch_callback_t callback)
+void TLSConfiguratorPrivate::watch(const TLSConfigurator::watch_callback_t& callback)
 {
     if (!callback) {
         this->m_stat_watcher.stop();
@@ -92,7 +93,7 @@ void TLSConfiguratorPrivate::watch(TLSConfigurator::watch_callback_t callback)
 
 void TLSConfiguratorPrivate::on_stat(ev::stat& watcher, int revents)
 {
-    if (revents & ev::ERROR) {
+    if (is_ev_error(revents)) [[unlikely]] {
         std::cerr << std::format("Error: stat watcher error: EV_ERROR\n");
         return;
     }
@@ -101,14 +102,14 @@ void TLSConfiguratorPrivate::on_stat(ev::stat& watcher, int revents)
     this->m_timer.again();
 }
 
-void TLSConfiguratorPrivate::on_timeout(ev::timer& watcher, int revents)
+void TLSConfiguratorPrivate::on_timeout(ev::timer& timer, int revents)
 {
-    watcher.stop();
-    if (revents & ev::ERROR) {
+    if (is_ev_error(revents)) [[unlikely]] {
         std::cerr << std::format("Error: timer watcher error: EV_ERROR\n");
         return;
     }
 
+    timer.stop();
     if (this->m_callback) {
         try {
             auto config = this->configure();

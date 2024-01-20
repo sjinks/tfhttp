@@ -129,11 +129,14 @@ std::string DatabasePrivate::generate_uuid()
     );
 }
 
-void DatabasePrivate::run_query(const char* query, std::initializer_list<std::string> args)
+void DatabasePrivate::run_query(const char* query, const std::initializer_list<std::string>& args)
 {
     sqlite3pp::command cmd(this->m_db, query);
-    for (int i = 0; i < static_cast<int>(args.size()); ++i) {
-        cmd.bind(i + 1, *(args.begin() + i), sqlite3pp::nocopy);
+
+    int i = 1;
+    // NOLINTNEXTLINE(*-bounds-pointer-arithmetic)
+    for (const auto* it = args.begin(); it != args.end(); ++it, ++i) {
+        cmd.bind(i, *it, sqlite3pp::nocopy);
     }
 
     if (cmd.execute() != SQLITE_OK) [[unlikely]] {

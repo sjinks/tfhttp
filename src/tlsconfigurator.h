@@ -9,13 +9,17 @@ class TLSServerContext;
 
 class TLSConfigurator {
 public:
-    using watch_callback_t = std::function<void(std::shared_ptr<TLSServerContext>)>;
+    using watch_callback_t = std::function<void(const std::shared_ptr<TLSServerContext>&)>;
 
     explicit TLSConfigurator(const std::string& env_prefix);
+    TLSConfigurator(const TLSConfigurator&)            = delete;
+    TLSConfigurator(TLSConfigurator&&)                 = delete;
+    TLSConfigurator& operator=(const TLSConfigurator&) = delete;
+    TLSConfigurator& operator=(TLSConfigurator&&)      = delete;
     ~TLSConfigurator();
 
-    std::shared_ptr<TLSServerContext> configure() const;
-    void watch(watch_callback_t callback);
+    [[nodiscard]] std::shared_ptr<TLSServerContext> configure() const;
+    void watch(const watch_callback_t& callback);
     void stop();
 
 private:

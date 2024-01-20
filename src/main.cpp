@@ -99,7 +99,9 @@ int main()
         auto ctx = tlsconf.configure();
         if (ctx) {
             ctx->get_context();
-            tlsconf.watch([&ctx](std::shared_ptr<TLSServerContext> new_ctx) { replace_tls_context(ctx, new_ctx); });
+            tlsconf.watch([&ctx](const std::shared_ptr<TLSServerContext>& new_ctx) {
+                replace_tls_context(ctx, new_ctx);
+            });
         }
 
         auto server = Server::create(loop, address, port, database);
