@@ -32,6 +32,7 @@
 #include <ev++.h>
 #include <llhttp.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <sqlite3pp.h>
 #include <sys/socket.h>
 #include <tls.h>

@@ -9,9 +9,11 @@ ServerSocketPrivate::ServerSocketPrivate(const std::string& ip, std::uint16_t po
         throw std::system_error(errno, std::system_category(), "socket() failed");
     }
 
-    const int on = 1;
+    const int on      = 1;
+    const int timeout = 1;
     setsockopt(this->m_socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(int));
     setsockopt(this->m_socket, SOL_IP, IP_FREEBIND, &on, sizeof(int));
+    setsockopt(this->m_socket, IPPROTO_TCP, TCP_DEFER_ACCEPT, &timeout, sizeof(int));
 
     SockAddr s{};
 

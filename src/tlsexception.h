@@ -4,15 +4,20 @@
 #include <stdexcept>
 #include <tls.h>
 
+// CPPNOLINTNEXTLINE(*-special-member-functions)
 class TLSException : public std::runtime_error {
 public:
     using std::runtime_error::runtime_error;
     using std::runtime_error::operator=;
 
-    explicit TLSException(tls* ctx) : std::runtime_error(tls_error(ctx)) {}
-    explicit TLSException(tls_config* config) : std::runtime_error(tls_config_error(config)) {}
-    TLSException(const std::string& prefix, tls* ctx) : std::runtime_error(prefix + ": " + tls_error(ctx)) {}
-    TLSException(const std::string& prefix, tls_config* config)
+    explicit TLSException(tls* ctx [[gnu::nonnull]]) : std::runtime_error(tls_error(ctx)) {}
+    explicit TLSException(tls_config* config [[gnu::nonnull]]) : std::runtime_error(tls_config_error(config)) {}
+
+    TLSException(const std::string& prefix, tls* ctx [[gnu::nonnull]])
+        : std::runtime_error(prefix + ": " + tls_error(ctx))
+    {}
+
+    TLSException(const std::string& prefix, tls_config* config [[gnu::nonnull]])
         : std::runtime_error(prefix + ": " + tls_config_error(config))
     {}
 
