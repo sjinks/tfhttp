@@ -186,7 +186,7 @@ if(NOT LIBSQLITE3_FOUND)
         GIT_REPOSITORY https://github.com/sqlite/sqlite.git
         GIT_TAG version-3.44.2
         GIT_SHALLOW ON
-        CONFIGURE_COMMAND <SOURCE_DIR>/configure --quiet -disable-threadsafe --enable-releasemode --disable-readline --disable-amalgamation --disable-tcl --enable-static --disable-shared --enable-tempstore=yes --disable-load-extension --disable-math --disable-json --without-tcl --prefix=${CMAKE_CURRENT_BINARY_DIR}/sqlite3 CC=${CMAKE_C_COMPILER} CPPFLAGS=${SQLITE3_CPPFLAGS}
+        CONFIGURE_COMMAND <SOURCE_DIR>/configure --quiet --disable-threadsafe --enable-releasemode --disable-readline --disable-amalgamation --disable-tcl --enable-static --disable-shared --enable-tempstore=yes --disable-load-extension --disable-math --disable-json --without-tcl --prefix=${CMAKE_CURRENT_BINARY_DIR}/sqlite3 CC=${CMAKE_C_COMPILER} CPPFLAGS=${SQLITE3_CPPFLAGS}
     )
 
     set(LIBSQLITE3_LIBRARIES sqlite3)
@@ -238,7 +238,7 @@ if(NOT LIBTLS_FOUND)
         GIT_REPOSITORY https://git.causal.agency/libretls
         GIT_TAG 3.8.1
         GIT_SHALLOW ON
-        CONFIGURE_COMMAND autoreconf -i <SOURCE_DIR> && <SOURCE_DIR>/configure --disable-dependency-tracking --disable-shared --enable-static --prefix=${CMAKE_CURRENT_BINARY_DIR}/libtls CC=${CMAKE_C_COMPILER} AR=${CMAKE_AR} RANLIB=${CMAKE_RANLIB}
+        CONFIGURE_COMMAND autoreconf -i <SOURCE_DIR> && <SOURCE_DIR>/configure --disable-shared --enable-static --prefix=${CMAKE_CURRENT_BINARY_DIR}/libtls CC=${CMAKE_C_COMPILER} AR=${CMAKE_AR} RANLIB=${CMAKE_RANLIB}
     )
 
     set(LIBTLS_LIBRARIES tls;ssl;crypto)

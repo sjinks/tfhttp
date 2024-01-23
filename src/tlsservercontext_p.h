@@ -22,7 +22,7 @@ public:
     [[nodiscard]] tls* get_context();
 
 private:
-    std::unique_ptr<tls, decltype(&dispose_tls_context)> m_context{tls_server(), &dispose_tls_context};
+    std::unique_ptr<tls, decltype(&tls_free)> m_context{tls_server(), &tls_free};
     std::unique_ptr<tls_config, decltype(&tls_config_free)> m_config{tls_config_new(), &tls_config_free};
     bool m_configured = false;
 };

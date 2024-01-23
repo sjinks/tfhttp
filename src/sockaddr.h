@@ -12,9 +12,9 @@ public:
     // In a standard-layout union with an active member of struct type T1, it is permitted to read a non-static data
     // member m of another union member of struct type T2 provided m is part of the common initial sequence of T1 and
     // T2.
-    sockaddr* as_sockaddr() noexcept { return &this->addr.sa; }
-    sockaddr_in* as_sockaddr_in() noexcept { return &this->addr.sa_in; }
-    sockaddr_in6* as_sockaddr_in6() noexcept { return &this->addr.sa_in6; }
+    [[gnu::returns_nonnull]] sockaddr* as_sockaddr() noexcept { return &this->addr.sa; }
+    [[gnu::returns_nonnull]] sockaddr_in* as_sockaddr_in() noexcept { return &this->addr.sa_in; }
+    [[gnu::returns_nonnull]] sockaddr_in6* as_sockaddr_in6() noexcept { return &this->addr.sa_in6; }
 
     [[nodiscard]] consteval socklen_t size() const noexcept { return static_cast<socklen_t>(sizeof(this->addr)); }
 
