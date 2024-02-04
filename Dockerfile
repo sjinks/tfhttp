@@ -1,4 +1,4 @@
-FROM ubuntu:mantic-20231128@sha256:cbc171ba52575fec0601f01abf6fdec67f8ed227658cacbc10d778ac3b218307 AS build
+FROM ubuntu:mantic-20240122@sha256:f0bb9ee844f7adb284ac036a15469062adbe3a4458c06680216ed73df231cb31 AS build
 
 ENV DEBIAN_FRONTEND=noninteractive
 
