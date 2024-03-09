@@ -95,7 +95,7 @@ jobs:
         run: |
           devcontainer exec --workspace-folder . --id-label codespace=tfhttp -- sh -c '
             cd /workspaces/tfhttp && \
-            cmake -B /tmp/build -DCMAKE_BUILD_TYPE=Release -DBUILD_STATIC_BINARY=off -DBUILD_MOSTLY_STATIC_BINARY=on && \
+            cmake -B /tmp/build -DCMAKE_BUILD_TYPE=Release -DBUILD_STATIC_BINARY=off -DBUILD_MOSTLY_STATIC_BINARY=off && \
             cmake --build /tmp/build'
 
       - name: Clean up
