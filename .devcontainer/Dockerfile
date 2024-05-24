@@ -37,14 +37,14 @@ RUN sudo npm i -g @microsoft/sarif-multitool
 WORKDIR /usr/src
 
 RUN \
-    git clone https://github.com/ada-url/ada.git --depth 1 -b v2.7.7 && \
+    git clone https://github.com/ada-url/ada.git --depth 1 -b v2.7.8 && \
     cd ada && \
     cmake -B build -DCMAKE_BUILD_TYPE=Release -DADA_TOOLS=off -DADA_TESTING=off && \
     cmake --build build && \
     cmake --install build
 
 RUN \
-    wget -q -O - https://github.com/nodejs/llhttp/archive/refs/tags/release/v9.2.0.tar.gz | tar xzf - && \
+    wget -q -O - https://github.com/nodejs/llhttp/archive/refs/tags/release/v9.2.1.tar.gz | tar xzf - && \
     cd llhttp-release-v* && \
     cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON && \
     cmake --build build && \
@@ -56,7 +56,7 @@ RUN \
     cp ./* /usr/local/include
 
 RUN \
-    wget -q -O - https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-3.8.2.tar.gz | tar xzf - && \
+    wget -q -O - https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-3.9.2.tar.gz | tar xzf - && \
     cd libressl-* && \
     cmake -B build -DCMAKE_BUILD_TYPE=Release -DLIBRESSL_APPS=OFF -DLIBRESSL_TESTS=OFF && \
     cmake --build build && \

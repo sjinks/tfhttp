@@ -6,8 +6,9 @@ runs:
     - name: Install dependencies
       shell: bash
       run: |
+        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
         sudo apt-get update
-        sudo apt-get install -y clang-tools ca-certificates python3-minimal python3-whichcraft nlohmann-json3-dev libsqlite3-dev libev-dev pkgconf libtls-dev libssl-dev
+        sudo apt-get install -y clang-tools ca-certificates python3-minimal python3-whichcraft nlohmann-json3-dev libsqlite3-dev libev-dev pkgconf libtls-dev libssl-dev libstdc++-13-dev
 
     - name: Install newer Clang
       shell: bash
@@ -45,3 +46,12 @@ runs:
         git clone https://github.com/iwongu/sqlite3pp.git --depth 1 -b v1.0.9 && \
         cd sqlite3pp/headeronly_src && \
         sudo cp ./* /usr/local/include
+
+    - name: Install libressl
+      shell: bash
+      run: |
+        wget -q -O - https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-3.9.2.tar.gz | tar xzf -
+        cd libressl-*
+        cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DBUILD_SHARED_LIBS=OFF -DLIBRESSL_APPS=OFF -DLIBRESSL_TESTS=OFF
+        cmake --build build
+        sudo cmake --install build
