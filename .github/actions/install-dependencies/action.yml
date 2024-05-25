@@ -8,7 +8,7 @@ runs:
       run: |
         sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
         sudo apt-get update
-        sudo apt-get install -y clang-tools ca-certificates python3-minimal python3-whichcraft nlohmann-json3-dev libsqlite3-dev libev-dev pkgconf libtls-dev libssl-dev libstdc++-13-dev
+        sudo apt-get install -y clang-tools ca-certificates python3-minimal python3-whichcraft nlohmann-json3-dev libsqlite3-dev libev-dev pkgconf libtls-dev libssl-dev libstdc++-13-dev ccache
 
     - name: Install newer Clang
       shell: bash
@@ -22,12 +22,15 @@ runs:
       shell: bash
       run: npm i -g @microsoft/sarif-multitool
 
+    - name: Set up ccache
+      uses: hendrikmuhs/ccache-action@c92f40bee50034e84c763e33b317c77adaa81c92 # v1.2.13
+
     - name: Install libada
       shell: bash
       run: |
         git clone https://github.com/ada-url/ada.git --depth 1 -b v2.7.4
         cd ada
-        cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DADA_TOOLS=off -DADA_TESTING=off
+        cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DADA_TOOLS=off -DADA_TESTING=off -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         cmake --build build
         sudo cmake --install build
 
@@ -36,7 +39,7 @@ runs:
       run: |
         wget -q -O - https://github.com/nodejs/llhttp/archive/refs/tags/release/v9.1.3.tar.gz | tar xzf -
         cd llhttp-release-v*
-        cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON
+        cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         cmake --build build
         sudo cmake --install build
 
@@ -52,6 +55,6 @@ runs:
       run: |
         wget -q -O - https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-3.9.2.tar.gz | tar xzf -
         cd libressl-*
-        cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DBUILD_SHARED_LIBS=OFF -DLIBRESSL_APPS=OFF -DLIBRESSL_TESTS=OFF
+        cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DBUILD_SHARED_LIBS=OFF -DLIBRESSL_APPS=OFF -DLIBRESSL_TESTS=OFF -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         cmake --build build
         sudo cmake --install build
