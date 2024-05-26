@@ -15,8 +15,8 @@ runs:
       run: |
         wget https://apt.llvm.org/llvm.sh
         chmod +x ./llvm.sh
-        sudo ./llvm.sh 17
-        sudo apt-get install -y clang-tools-17
+        sudo ./llvm.sh 18
+        sudo apt-get install -y clang-tools-18
 
     - name: Install sarif-multitool
       shell: bash

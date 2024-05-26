@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory
-      CC: clang-17
-      CXX: clang++-17
+      CC: clang-18
+      CXX: clang++-18
     steps:
       - name: Check out code
         uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6

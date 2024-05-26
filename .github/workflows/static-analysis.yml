@@ -20,10 +20,10 @@ jobs:
       contents: read
       security-events: write
     env:
-      CC: clang-17
-      CXX: clang++-17
-      CCC_CC: clang-17
-      CCC_CXX: clang++-17
+      CC: clang-18
+      CXX: clang++-18
+      CCC_CC: clang-18
+      CCC_CXX: clang++-18
       DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 1
       SCANBUILD_DIR: /tmp/scanbuild
     steps:
@@ -35,8 +35,8 @@ jobs:
 
       - name: Run analysis
         run: |
-          scan-build-17 cmake -B build
-          scan-build-17 --force-analyze-debug-code -sarif --status-bugs -no-failure-reports -o "${SCANBUILD_DIR}" --exclude build cmake --build build
+          scan-build-18 cmake -B build
+          scan-build-18 --force-analyze-debug-code -sarif --status-bugs -no-failure-reports -o "${SCANBUILD_DIR}" --exclude build cmake --build build
         continue-on-error: true
         id: scanbuild
 
