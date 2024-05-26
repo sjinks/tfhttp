@@ -7,14 +7,16 @@
     "customizations": {
         "vscode": {
             "extensions": [
+                "akiramiyakoda.cppincludeguard",
+                "github.copilot",
+                "GitHub.copilot-chat",
+                "github.vscode-github-actions",
+                "ms-azuretools.vscode-docker",
                 "ms-vscode.cmake-tools",
                 "ms-vscode.cpptools",
-                "github.copilot",
-                "akiramiyakoda.cppincludeguard",
-                "SonarSource.sonarlint-vscode",
                 "ms-vscode.cpptools-extension-pack",
-                "xaver.clang-format",
-                "GitHub.copilot-chat"
+                "SonarSource.sonarlint-vscode",
+                "xaver.clang-format"
             ],
             "settings": {
                 "sonarlint.ls.javaHome": "/usr/lib/jvm/java-21-openjdk-amd64",

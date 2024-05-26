@@ -45,6 +45,12 @@ jobs:
           pip install sarif-tools
           sarif copy --output /tmp/merged.sarif "${SCANBUILD_DIR}/**/*.sarif"
           jq 'del(.runs[].conversion)' /tmp/merged.sarif > /tmp/scan-build.sarif
+          if [ $(jq '[.runs[].results | length] | add' /tmp/scan-build.sarif) -gt 0 ]; then
+            exit 1
+          fi
+          exit 0
+        id: merge
+        continue-on-error: true
 
       - name: Upload scan results
         uses: github/codeql-action/upload-sarif@9fdb3e49720b44c48891d036bb502feb25684276 # v3.25.6
@@ -55,4 +61,4 @@ jobs:
 
       - name: Set exit code
         run: exit 1
-        if: steps.scanbuild.outcome == 'failure'
+        if: steps.scanbuild.outcome == 'failure' || steps.merge.outcome == 'failure'

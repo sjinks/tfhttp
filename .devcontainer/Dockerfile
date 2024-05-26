@@ -7,7 +7,7 @@ ENV LANGUAGE=en_US
 RUN \
     export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y --no-install-recommends bash sudo ca-certificates wget file cmake git make pkgconf valgrind autoconf automake libtool m4 ninja-build && \
+    apt-get install -y --no-install-recommends bash sudo ca-certificates wget file cmake git make pkgconf valgrind autoconf automake libtool m4 ninja-build jq less && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 RUN \
@@ -31,8 +31,6 @@ RUN \
 RUN \
     echo "ubuntu ALL=(root) NOPASSWD:ALL" > "/etc/sudoers.d/ubuntu" && \
     chmod 0440 "/etc/sudoers.d/ubuntu"
-
-RUN sudo npm i -g @microsoft/sarif-multitool
 
 WORKDIR /usr/src
 
