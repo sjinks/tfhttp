@@ -4,6 +4,8 @@ on:
 
 jobs:
   debug:
+    permissions:
+      contents: none
     runs-on: ubuntu-latest
     steps:
       - name: Dump GitHub context
