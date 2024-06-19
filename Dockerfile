@@ -16,6 +16,6 @@ RUN \
     cmake --build build && \
     strip --strip-unneeded build/src/tfhttp
 
-FROM cgr.dev/chainguard/glibc-dynamic:latest@sha256:31073f3a1add4bfc3ce4ee474ee171bf9dcc9799a468a39c8180c45ddf11c883
+FROM cgr.dev/chainguard/glibc-dynamic:latest@sha256:9850190b2e79687e2ffe9948f1648ca780e8a2461dabfb3e275a95f7912f4081
 COPY --from=build /app/build/src/tfhttp /tfhttp
 ENTRYPOINT ["/tfhttp"]
