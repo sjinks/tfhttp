@@ -6,13 +6,12 @@ if(POLICY CMP0077)
     cmake_policy(SET CMP0077 NEW)
 endif()
 
-option(BUILD_STATIC_BINARY        "Build static binary"         OFF)
-option(BUILD_MOSTLY_STATIC_BINARY "All dependencies except system libraries are static" OFF)
-option(FORCE_EXTERNAL_LIBEV       "Do not use system libev"     OFF)
-option(FORCE_EXTERNAL_LIBADA      "Do not use system libada"    OFF)
-option(FORCE_EXTERNAL_LIBLLHTTP   "Do not use system libllhttp" OFF)
-option(FORCE_EXTERNAL_SQLITE3     "Do not use system sqlite3"   OFF)
-option(FORCE_EXTERNAL_LIBTLS      "Do not use system libtls"    OFF)
+option(BUILD_MOSTLY_STATIC_BINARY "Mostly static binary"         OFF)
+option(FORCE_EXTERNAL_LIBEV       "Do not use system libev"      OFF)
+option(FORCE_EXTERNAL_LIBADA      "Do not use system libada"     OFF)
+option(FORCE_EXTERNAL_LIBLLHTTP   "Do not use system libllhttp"  OFF)
+option(FORCE_EXTERNAL_LIBTLS      "Do not use system libtls"     OFF)
+option(FORCE_EXTERNAL_LIBNANODBC  "Do not use system libnanodbc" OFF)
 
 include(ExternalProject)
 include(FindPkgConfig)
@@ -29,12 +28,7 @@ set_target_properties(
     VISIBILITY_INLINES_HIDDEN ON
 )
 
-if(BUILD_STATIC_BINARY)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES "${CMAKE_STATIC_LIBRARY_SUFFIX}")
-    set(CMAKE_EXE_LINKER_FLAGS "-static")
-    set(BUILD_MOSTLY_STATIC_BINARY OFF)
-    set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
-elseif(BUILD_MOSTLY_STATIC_BINARY)
+if(BUILD_MOSTLY_STATIC_BINARY)
     set(CMAKE_FIND_LIBRARY_SUFFIXES "${CMAKE_STATIC_LIBRARY_SUFFIX}")
     set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
     set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
@@ -72,26 +66,31 @@ target_sources(
 target_precompile_headers(tfhttp PRIVATE stdafx.h)
 
 if(NOT FORCE_EXTERNAL_LIBEV)
-    find_package(ev)
+    find_package(ev QUIET)
 endif()
 
 if(NOT FORCE_EXTERNAL_LIBADA)
-    find_package(ada)
+    find_package(ada QUIET)
 endif()
 
 if(NOT FORCE_EXTERNAL_LIBLLHTTP)
-    find_package(llhttp)
-endif()
-
-if(NOT FORCE_EXTERNAL_SQLITE3)
-    find_package(SQLite3)
+    find_package(llhttp QUIET)
 endif()
 
 if(NOT FORCE_EXTERNAL_LIBTLS)
     find_package(LibreSSL QUIET)
+    if(NOT LibreSSL_FOUND)
+        pkg_check_modules(LibreSSL QUIET IMPORTED_TARGET libtls libssl libcrypto)
+        if(LibreSSL_FOUND)
+            add_library(LibreSSL::TLS ALIAS PkgConfig::LibreSSL)
+        endif()
+    endif()
 endif()
 
-find_path(SQLITE3PP sqlite3pp.h)
+if(NOT FORCE_EXTERNAL_LIBNANODBC)
+    find_package(nanodbc QUIET)
+endif()
+
 find_package(nlohmann_json QUIET)
 
 if(NOT EV_FOUND)
@@ -123,7 +122,7 @@ if(NOT ADA_FOUND)
     set(ADA_TOOLS OFF)
     set(ADA_TESTING OFF)
     set(BUILD_SHARED_LIBS OFF)
-    FetchContent_Declare(ada GIT_REPOSITORY https://github.com/ada-url/ada.git GIT_TAG v2.7.8 GIT_SHALLOW ON)
+    FetchContent_Declare(ada GIT_REPOSITORY https://github.com/ada-url/ada.git GIT_TAG v2.9.2 GIT_SHALLOW ON)
     FetchContent_MakeAvailable(ada)
 endif()
 
@@ -133,41 +132,6 @@ if(NOT LLHTTP_FOUND)
     set(BUILD_STATIC_LIBS ON CACHE INTERNAL "")
     FetchContent_Declare(llhttp URL "https://github.com/nodejs/llhttp/archive/refs/tags/release/v9.2.1.tar.gz")
     FetchContent_MakeAvailable(llhttp)
-endif()
-
-if(NOT SQLite3_FOUND)
-    message(STATUS "*** Using external sqlite3")
-    set(sqlite3_BUILD_SHARED_LIBS OFF)
-    FetchContent_Declare(SQLite3 GIT_REPOSITORY https://github.com/sjinks/sqlite3-cmake)
-    FetchContent_MakeAvailable(SQLite3)
-    target_compile_definitions(SQLite3 PRIVATE
-        SQLITE_DQS=0
-        SQLITE_DEFAULT_MEMSTATUS=0
-        SQLITE_DEFAULT_WAL_SYNCHRONOUS=1
-        SQLITE_MAX_EXPR_DEPTH=0
-        SQLITE_OMIT_DECLTYPE
-        SQLITE_OMIT_DEPRECATED
-        SQLITE_OMIT_PROGRESS_CALLBACK
-        SQLITE_OMIT_SHARED_CACHE
-    )
-endif()
-
-if(NOT SQLITE3PP)
-    message(STATUS "*** Using external sqlite3pp")
-    ExternalProject_Add(
-        sqlite3pp
-        GIT_REPOSITORY https://github.com/iwongu/sqlite3pp.git
-        GIT_TAG v1.0.9
-        GIT_SHALLOW ON
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND ""
-        INSTALL_COMMAND ""
-    )
-
-    target_include_directories(tfhttp PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/sqlite3pp-prefix/src/sqlite3pp/headeronly_src)
-    add_dependencies(tfhttp sqlite3pp)
-else()
-    target_include_directories(tfhttp PRIVATE ${SQLITE3PP})
 endif()
 
 if(NOT nlohmann_json_FOUND)
@@ -188,8 +152,20 @@ if(NOT LibreSSL_FOUND)
     add_library(LibreSSL::TLS ALIAS tls)
 endif()
 
+if(NOT nanodbc_FOUND)
+    message(STATUS "*** Using external nanodbc")
+    set(nanodbc_patch patch -p1 < ${CMAKE_SOURCE_DIR}/nanodbc.patch)
+    set(NANODBC_DISABLE_TESTS ON CACHE INTERNAL "")
+    set(NANODBC_DISABLE_EXAMPLES ON CACHE INTERNAL "")
+    set(NANODBC_DISABLE_LIBCXX ON CACHE INTERNAL "")
+    set(NANODBC_GENERATE_INSTALL ON CACHE INTERNAL "")
+    FetchContent_Declare(nanodbc URL https://github.com/nanodbc/nanodbc/archive/refs/tags/v2.14.0.tar.gz PATCH_COMMAND ${nanodbc_patch})
+    FetchContent_MakeAvailable(nanodbc)
+    set_target_properties(nanodbc PROPERTIES CXX_STANDARD 17)
+endif()
+
 set(BUILD_SHARED_LIBS ${orig_BUILD_SHARED_LIBS})
-target_link_libraries(tfhttp PRIVATE ev::ev ada::ada llhttp::llhttp nlohmann_json::nlohmann_json SQLite::SQLite3 LibreSSL::TLS)
+target_link_libraries(tfhttp PRIVATE ev::ev ada::ada llhttp::llhttp nlohmann_json::nlohmann_json LibreSSL::TLS nanodbc)
 
 if(BUILD_MOSTLY_STATIC_BINARY)
     get_target_property(libs tfhttp LINK_LIBRARIES)

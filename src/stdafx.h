@@ -31,9 +31,9 @@
 #include <arpa/inet.h>
 #include <ev++.h>
 #include <llhttp.h>
+#include <nanodbc/nanodbc.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#include <sqlite3pp.h>
 #include <sys/socket.h>
 #include <tls.h>
 #include <unistd.h>

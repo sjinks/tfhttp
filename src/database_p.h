@@ -4,12 +4,12 @@
 #include <functional>
 #include <initializer_list>
 #include <string>
-#include <sqlite3pp.h>
+#include <nanodbc/nanodbc.h>
 #include "database.h"
 
 class DatabasePrivate {
 public:
-    explicit DatabasePrivate(const std::string& path);
+    explicit DatabasePrivate(const std::string& connection_string);
 
     void create_tables();
 
@@ -21,7 +21,7 @@ public:
     [[nodiscard]] Database::status_t delete_lock(const std::string& slug, const std::string& lock_id);
 
 private:
-    sqlite3pp::database m_db;
+    nanodbc::connection m_db;
     [[nodiscard]] bool has_lock(const std::string& slug);
     [[nodiscard]] bool has_lock(const std::string& slug, const std::string& lock_id);
 
@@ -32,12 +32,9 @@ private:
     template<typename F, typename... Args>
     Database::status_t transaction(const F& f, Args&&... args)
     {
-        sqlite3pp::transaction xact(this->m_db);
+        nanodbc::transaction xact(this->m_db);
         auto result = f(std::forward<Args>(args)...);
-        if (xact.commit() != SQLITE_OK) [[unlikely]] {
-            throw sqlite3pp::database_error(this->m_db);
-        }
-
+        xact.commit();
         return result;
     }
 };

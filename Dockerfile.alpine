@@ -1,16 +1,21 @@
 FROM alpine:3.20.2@sha256:0a4eaa0eecf5f8c050e5bba433f58c052be7587ee8af3e8b3910ef9ab5fbe9f5 AS build
 
-RUN apk add --no-cache cmake make libc-dev clang18 git file libev-dev ada-static ada-dev sqlite-dev sqlite-static sqlite3pp nlohmann-json libressl-dev
+RUN apk add --no-cache cmake make libc-dev clang18 git file libev-dev ada-static ada-dev nlohmann-json libressl-dev patch unixodbc-dev
 WORKDIR /
 COPY . /app
 WORKDIR /app
 
 RUN \
-    cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_STATIC_BINARY=on -DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_C_COMPILER=clang-18 && \
+    cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_MOSTLY_STATIC_BINARY=on -DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_C_COMPILER=clang-18 && \
     cmake --build build && \
     strip --strip-unneeded build/src/tfhttp
 
-FROM scratch
-COPY --from=build /app/build/src/tfhttp /tfhttp
+FROM alpine:3.20.2@sha256:0a4eaa0eecf5f8c050e5bba433f58c052be7587ee8af3e8b3910ef9ab5fbe9f5
+COPY --from=build /app/build/src/tfhttp /usr/bin/tfhttp
+RUN \
+    apk add --no-cache mariadb-connector-odbc && \
+    apk add --no-cache sqliteodbc -X https://dl-cdn.alpinelinux.org/alpine/edge/testing && \
+    echo 'W01hcmlhREIgVW5pY29kZV0KRHJpdmVyPS91c3IvbGliL21hcmlhZGIvbGlibWFvZGJjLnNvCkRlc2NyaXB0aW9uPU1hcmlhREIgQ29ubmVjdG9yL09EQkMoVW5pY29kZSkKVGhyZWFkaW5nPTAKVXNhZ2VDb3VudD0xCgpbU1FMaXRlM10KRGVzY3JpcHRpb249U1FMaXRlMyBPREJDIERyaXZlcgpEcml2ZXI9bGlic3FsaXRlM29kYmMuc28KU2V0dXA9bGlic3FsaXRlM29kYmMuc28KVXNhZ2VDb3VudD0xCgo=' | base64 -d > /etc/odbcinst.ini
+
 USER 20000:20000
-ENTRYPOINT ["/tfhttp"]
+ENTRYPOINT ["/usr/bin/tfhttp"]

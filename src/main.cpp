@@ -14,8 +14,8 @@ void signal_watcher(ev::sig& watcher, int)
 
 std::string get_database_name()
 {
-    const char* name = std::getenv("TFHTTP_DATABASE_NAME");  // NOLINT(concurrency-mt-unsafe)
-    return name != nullptr ? name : ":memory:";
+    const char* name = std::getenv("TFHTTP_DSN");  // NOLINT(concurrency-mt-unsafe)
+    return name != nullptr ? name : "Driver={SQLite3};Database=:memory:";
 }
 
 std::uint16_t get_port()
