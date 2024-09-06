@@ -1,12 +1,16 @@
 #include "stdafx.h"
 #include "database_p.h"
 #include "database.h"
+#include "utils.h"
 
-DatabasePrivate::DatabasePrivate(const std::string& path) : m_db(path.c_str()) {}
+DatabasePrivate::DatabasePrivate(const std::string& connection_string) : m_db(connection_string) {}
 
 void DatabasePrivate::create_tables()
 {
-    this->execute("PRAGMA journal_mode = WAL");
+    if (ci_eq(this->m_db.dbms_name(), "sqlite")) {
+        this->execute("PRAGMA journal_mode = WAL");
+    }
+
     this->transaction([this]() {
         this->execute("CREATE TABLE IF NOT EXISTS state (slug VARCHAR(32) PRIMARY KEY, state TEXT NOT NULL)");
         this->execute("CREATE TABLE IF NOT EXISTS lock (slug VARCHAR(32) PRIMARY KEY, lockID CHARACTER(36) NOT NULL)");
@@ -16,10 +20,11 @@ void DatabasePrivate::create_tables()
 
 std::string DatabasePrivate::get_state(const std::string& slug)
 {
-    sqlite3pp::query query(this->m_db, "SELECT state FROM state WHERE slug = ?1");
-    query.bind(1, slug, sqlite3pp::nocopy);
-    if (auto it = query.begin(); it != query.end()) {
-        return (*it).get<const char*>(0);
+    nanodbc::statement stmt(this->m_db);
+    nanodbc::prepare(stmt, "SELECT state FROM state WHERE slug = ?");
+    stmt.bind(0, slug.c_str());
+    if (auto result = nanodbc::execute(stmt); result.next()) {
+        return result.get<std::string>(0);
     }
 
     return R"({"version": 4, "serial": 1, "lineage": ")" + DatabasePrivate::generate_uuid() + "\"}";
@@ -40,7 +45,15 @@ DatabasePrivate::set_state(const std::string& slug, const std::string& state, co
             }
         }
 
-        this->run_query("INSERT OR REPLACE INTO state (slug, state) VALUES (?1, ?2)", {slug, state});
+        nanodbc::statement select(this->m_db);
+        nanodbc::prepare(select, "SELECT state FROM state WHERE slug = ?");
+        select.bind(0, slug.c_str());
+        if (auto result = nanodbc::execute(select); result.next()) {
+            this->run_query("UPDATE state SET state = ? WHERE slug = ?", {state, slug});
+            return OK;
+        }
+
+        this->run_query("INSERT INTO state (slug, state) VALUES (?1, ?2)", {slug, state});
         return OK;
     });
 }
@@ -59,7 +72,7 @@ Database::status_t DatabasePrivate::delete_state(const std::string& slug, const 
             }
         }
 
-        this->run_query("DELETE FROM state WHERE slug = ?1", {slug});
+        this->run_query("DELETE FROM state WHERE slug = ?", {slug});
         return OK;
     });
 }
@@ -71,7 +84,7 @@ Database::status_t DatabasePrivate::put_lock(const std::string& slug, const std:
             return Database::status_t::LOCKED;
         }
 
-        this->run_query("INSERT INTO lock (slug, lockID) VALUES (?1, ?2)", {slug, lock_id});
+        this->run_query("INSERT INTO lock (slug, lockID) VALUES (?, ?)", {slug, lock_id});
         return Database::status_t::OK;
     });
 }
@@ -83,28 +96,32 @@ Database::status_t DatabasePrivate::delete_lock(const std::string& slug, const s
             return Database::status_t::BAD_REQUEST;
         }
 
-        this->run_query("DELETE FROM lock WHERE slug = ?1 AND lockID = ?2", {slug, lock_id});
+        this->run_query("DELETE FROM lock WHERE slug = ? AND lockID = ?", {slug, lock_id});
         return Database::status_t::OK;
     });
 }
 
 bool DatabasePrivate::has_lock(const std::string& slug)
 {
-    const char* sql = "SELECT lockID FROM lock WHERE slug = ?1";
+    const char* sql = "SELECT lockID FROM lock WHERE slug = ?";
 
-    sqlite3pp::query query(this->m_db, sql);
-    query.bind(1, slug, sqlite3pp::nocopy);
-    return query.begin() != query.end();
+    nanodbc::statement stmt(this->m_db);
+    nanodbc::prepare(stmt, sql);
+    stmt.bind(0, slug.c_str());
+    auto result = nanodbc::execute(stmt);
+    return result.next();
 }
 
 bool DatabasePrivate::has_lock(const std::string& slug, const std::string& lock_id)
 {
-    const char* sql = "SELECT lockID FROM lock WHERE slug = ?1 AND lockID = ?2";
+    const char* sql = "SELECT lockID FROM lock WHERE slug = ? AND lockID = ?";
 
-    sqlite3pp::query query(this->m_db, sql);
-    query.bind(1, slug, sqlite3pp::nocopy);
-    query.bind(2, lock_id, sqlite3pp::nocopy);
-    return query.begin() != query.end();
+    nanodbc::statement stmt(this->m_db);
+    nanodbc::prepare(stmt, sql);
+    stmt.bind(0, slug.c_str());
+    stmt.bind(1, lock_id.c_str());
+    auto result = nanodbc::execute(stmt);
+    return result.next();
 }
 
 std::string DatabasePrivate::generate_uuid()
@@ -131,22 +148,19 @@ std::string DatabasePrivate::generate_uuid()
 
 void DatabasePrivate::run_query(const char* query, const std::initializer_list<std::string>& args)
 {
-    sqlite3pp::command cmd(this->m_db, query);
+    nanodbc::statement stmt(this->m_db);
+    nanodbc::prepare(stmt, query);
 
-    int i = 1;
+    short int i = 0;
     // NOLINTNEXTLINE(*-bounds-pointer-arithmetic)
     for (const auto* it = args.begin(); it != args.end(); ++it, ++i) {
-        cmd.bind(i, *it, sqlite3pp::nocopy);
+        stmt.bind(i, it->c_str());
     }
 
-    if (cmd.execute() != SQLITE_OK) [[unlikely]] {
-        throw sqlite3pp::database_error(this->m_db);
-    }
+    nanodbc::execute(stmt);
 }
 
 void DatabasePrivate::execute(const char* query)
 {
-    if (this->m_db.execute(query) != SQLITE_OK) [[unlikely]] {
-        throw sqlite3pp::database_error(this->m_db);
-    }
+    nanodbc::execute(this->m_db, query);
 }

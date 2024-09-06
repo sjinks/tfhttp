@@ -1,0 +1,32 @@
+diff --git a/nanodbc/nanodbc.cpp b/nanodbc/nanodbc.cpp
+index fb85598..12e604c 100644
+--- a/nanodbc/nanodbc.cpp
++++ b/nanodbc/nanodbc.cpp
+@@ -27,9 +27,9 @@
+ #include <map>
+ #include <type_traits>
+ 
+-#ifndef __clang__
++//#ifndef __clang__
+ #include <cstdint>
+-#endif
++//#endif
+ 
+ // User may redefine NANODBC_ASSERT macro in nanodbc/nanodbc.h
+ #ifndef NANODBC_ASSERT
+diff --git a/nanodbc/nanodbc.h b/nanodbc/nanodbc.h
+index 680c402..f707224 100644
+--- a/nanodbc/nanodbc.h
++++ b/nanodbc/nanodbc.h
+@@ -84,9 +84,9 @@
+ #include <string>
+ #include <vector>
+ 
+-#ifndef __clang__
++//#ifndef __clang__
+ #include <cstdint>
+-#endif
++//#endif
+ 
+ /// \brief The entirety of nanodbc can be found within this one namespace.
+ ///

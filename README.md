@@ -13,8 +13,8 @@ The server is rather an experiment in writing HTTP servers in C++. It is probabl
 tl;dr: see [Dockerfile](Dockerfile).
 
 1. Install required dependencies: clang++ or g++, cmake, make.
-2. Install optional dependencies: [libev](http://dist.schmorp.de/libev/), [ada](https://github.com/ada-url/ada), [SQLite3](https://github.com/sqlite/sqlite), [llhttp](https://github.com/nodejs/llhttp), [sqlite3pp](https://github.com/iwongu/sqlite3pp), [json](https://github.com/nlohmann/json), [libretls](https://git.causal.agency/libretls).
-3. If you don't install the optional dependencies, the system will try to download and build them. In this case, it may need `git`, `python3`, `python3-whichcraft` (for Ada), `tcl` (for SQLite3), and `openssl` (for LibreTLS). See [Dockerfile](Dockerfile) for details.
+2. Install optional dependencies: [libev](http://dist.schmorp.de/libev/), [ada](https://github.com/ada-url/ada), [nanodbc](https://github.com/nanodbc/nanodbc), [llhttp](https://github.com/nodejs/llhttp), [json](https://github.com/nlohmann/json), [libretls](https://git.causal.agency/libretls).
+3. If you don't install the optional dependencies, the system will try to download and build them. In this case, it may need `git`, `python3`, `python3-whichcraft` (for Ada), `unixodbc` (for nanodbc), and `openssl` (for LibreTLS). See [Dockerfile](Dockerfile) for details.
 4. Build: `cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel && cmake --build build`.
 
 ## Usage
@@ -22,7 +22,7 @@ tl;dr: see [Dockerfile](Dockerfile).
 The following environment variables control the server:
 * `TFHTTP_ADDRESS`: IP address the server will listen on. The default value is `0.0.0.0` (listen on all IP‌ addresses).
 * `TFHTTP_PORT`: port the server will listen on. The default value is `3000`.
-* `TFHTTP_DATABASE_NAME`: the name of the SQLite3 database where the server will store the state. By default, it is [`:memory:`](https://www.sqlite.org/inmemorydb.html), meaning its content will be lost on a restart.
+* `TFHTTP_DSN`: the data source name to request a connection to an ODBC Data Source. By default, it is `Driver={SQLite3};Database=:memory:` (an [in-memory SQLite3 database](https://www.sqlite.org/inmemorydb.html) that does not survive application restarts). You will need to have the corresponding ODBC connector installed.
 * `TFHTTP_HTTPS`: set to `1` to enable HTTPS.
 * `TFHTTP_CERTIFICATE`: path to the TLS certificate.
 * `TFHTTP_PRIVATE_KEY`: path to the TLS certificate key.

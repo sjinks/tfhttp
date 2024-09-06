@@ -7,7 +7,7 @@ ENV LANGUAGE=en_US
 RUN \
     export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y --no-install-recommends bash sudo ca-certificates wget file cmake git make pkgconf valgrind autoconf automake libtool m4 ninja-build jq less && \
+    apt-get install -y --no-install-recommends bash sudo ca-certificates wget file cmake git make pkgconf valgrind autoconf automake libtool m4 ninja-build jq less patch && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 RUN \
@@ -19,13 +19,13 @@ RUN \
 RUN \
     export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y --no-install-recommends clang clang-format clang-tidy clang-tools && \
+    apt-get install -y --no-install-recommends clang clang-format clang-tidy clang-tools g++ && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 RUN \
     export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y --no-install-recommends nlohmann-json3-dev libsqlite3-dev libev-dev zlib1g-dev && \
+    apt-get install -y --no-install-recommends nlohmann-json3-dev libev-dev zlib1g-dev unixodbc-dev libsqliteodbc odbc-mariadb && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 RUN \
@@ -35,7 +35,7 @@ RUN \
 WORKDIR /usr/src
 
 RUN \
-    git clone https://github.com/ada-url/ada.git --depth 1 -b v2.7.8 && \
+    git clone https://github.com/ada-url/ada.git --depth 1 -b v2.9.2 && \
     cd ada && \
     cmake -B build -DCMAKE_BUILD_TYPE=Release -DADA_TOOLS=off -DADA_TESTING=off && \
     cmake --build build && \
@@ -49,9 +49,11 @@ RUN \
     cmake --install build
 
 RUN \
-    git clone https://github.com/iwongu/sqlite3pp.git --depth 1 -b v1.0.9 && \
-    cd sqlite3pp/headeronly_src && \
-    cp ./* /usr/local/include
+    git clone https://github.com/nanodbc/nanodbc.git --depth 1 -b v2.14.0 && \
+    cd nanodbc && \
+    CXX=g++ cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON -DNANODBC_DISABLE_TESTS=ON -DNANODBC_DISABLE_EXAMPLES=ON -DNANODBC_DISABLE_LIBCXX=ON && \
+    cmake --build build && \
+    cmake --install build
 
 RUN \
     wget -q -O - https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-3.9.2.tar.gz | tar xzf - && \

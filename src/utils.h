@@ -32,4 +32,16 @@ inline std::string get_llhttp_error(llhttp_errno_t error)
     return std::format("Error: failed to parse HTTP request: {}", llhttp_errno_name(error));
 }
 
+inline std::string to_lower(const std::string& str)
+{
+    std::string lower_str = str;
+    std::ranges::transform(lower_str, lower_str.begin(), [](unsigned char c) { return std::tolower(c); });
+    return lower_str;
+}
+
+inline bool ci_eq(const std::string& str1, const std::string& str2)
+{
+    return to_lower(str1) == to_lower(str2);
+}
+
 #endif /* B6A6FE88_AB70_4E18_AE99_950788B786FA */
