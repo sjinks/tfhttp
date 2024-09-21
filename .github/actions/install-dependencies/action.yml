@@ -21,10 +21,27 @@ runs:
     - name: Set up ccache
       uses: hendrikmuhs/ccache-action@ed74d11c0b343532753ecead8a951bb09bb34bc9 # v1.2.14
 
+    - name: Set package versions
+      shell: bash
+      run: |
+        echo "LIBADA_VERSION=${LIBADA_VERSION}" >> "${GITHUB_ENV}"
+        echo "LLHTTP_VERSION=${LLHTTP_VERSION}" >> "${GITHUB_ENV}"
+        echo "NANODBC_VERSION=${NANODBC_VERSION}" >> "${GITHUB_ENV}"
+        echo "LIBRESSL_VERSION=${LIBRESSL_VERSION}" >> "${GITHUB_ENV}"
+      env:
+        # renovate: datasource=github-tags depName=ada-url/ada
+        LIBADA_VERSION: v2.9.1
+        # renovate: datasource=github-releases depName=nodejs/llhttp
+        LLHTTP_VERSION: v9.2.0
+        # renovate: datasource=github-tags depName=nanodbc/nanodbc
+        NANODBC_VERSION: v2.13.0
+        # renovate: datasource=github-tags depName=libressl/portable
+        LIBRESSL_VERSION: v3.9.1
+
     - name: Install libada
       shell: bash
       run: |
-        git clone https://github.com/ada-url/ada.git --depth 1 -b v2.9.2
+        git clone https://github.com/ada-url/ada.git --depth 1 -b "${LIBADA_VERSION}"
         cd ada
         cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DADA_TOOLS=off -DADA_TESTING=off -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         cmake --build build
@@ -33,7 +50,7 @@ runs:
     - name: Install llhttp
       shell: bash
       run: |
-        wget -q -O - https://github.com/nodejs/llhttp/archive/refs/tags/release/v9.2.1.tar.gz | tar xzf -
+        wget -q -O - "https://github.com/nodejs/llhttp/archive/refs/tags/release/${LLHTTP_VERSION}.tar.gz" | tar xzf -
         cd llhttp-release-v*
         cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         cmake --build build
@@ -42,7 +59,7 @@ runs:
     - name: Install nanodbc
       shell: bash
       run: |
-        git clone https://github.com/nanodbc/nanodbc.git --depth 1 -b v2.14.0
+        git clone https://github.com/nanodbc/nanodbc.git --depth 1 -b "${NANODBC_VERSION}"
         cd nanodbc
         CXX=g++ cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON -DNANODBC_DISABLE_TESTS=ON -DNANODBC_DISABLE_EXAMPLES=ON -DNANODBC_DISABLE_LIBCXX=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         cmake --build build
@@ -51,7 +68,7 @@ runs:
     - name: Install libressl
       shell: bash
       run: |
-        wget -q -O - https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-3.9.2.tar.gz | tar xzf -
+        wget -q -O - https://github.com/libressl/portable/releases/download/${LIBRESSL_VERSION}/libressl-${LIBRESSL_VERSION#v}.tar.gz | tar xzf -
         cd libressl-*
         cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DBUILD_SHARED_LIBS=OFF -DLIBRESSL_APPS=OFF -DLIBRESSL_TESTS=OFF -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         cmake --build build

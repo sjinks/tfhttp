@@ -34,29 +34,38 @@ RUN \
 
 WORKDIR /usr/src
 
+# renovate: datasource=github-tags depName=ada-url/ada
+ENV LIBADA_VERSION=v2.9.2
+# renovate: datasource=github-tags depName=nodejs/llhttp
+ENV LLHTTP_VERSION=v9.2.1
+# renovate: datasource=github-tags depName=nanodbc/nanodbc
+ENV NANODBC_VERSION=v2.14.0
+# renovate: datasource=github-releases depName=libressl/portable
+ENV LIBRESSL_VERSION=v3.9.2
+
 RUN \
-    git clone https://github.com/ada-url/ada.git --depth 1 -b v2.9.2 && \
+    git clone https://github.com/ada-url/ada.git --depth 1 -b "${LIBADA_VERSION}" && \
     cd ada && \
     cmake -B build -DCMAKE_BUILD_TYPE=Release -DADA_TOOLS=off -DADA_TESTING=off && \
     cmake --build build && \
     cmake --install build
 
 RUN \
-    wget -q -O - https://github.com/nodejs/llhttp/archive/refs/tags/release/v9.2.1.tar.gz | tar xzf - && \
+    wget -q -O - "https://github.com/nodejs/llhttp/archive/refs/tags/release/${LLHTTP_VERSION}.tar.gz" | tar xzf - && \
     cd llhttp-release-v* && \
     cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON && \
     cmake --build build && \
     cmake --install build
 
 RUN \
-    git clone https://github.com/nanodbc/nanodbc.git --depth 1 -b v2.14.0 && \
+    git clone https://github.com/nanodbc/nanodbc.git --depth 1 -b "${NANODBC_VERSION}" && \
     cd nanodbc && \
     CXX=g++ cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON -DNANODBC_DISABLE_TESTS=ON -DNANODBC_DISABLE_EXAMPLES=ON -DNANODBC_DISABLE_LIBCXX=ON && \
     cmake --build build && \
     cmake --install build
 
 RUN \
-    wget -q -O - https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-3.9.2.tar.gz | tar xzf - && \
+    wget -q -O - https://github.com/libressl/portable/releases/download/${LIBRESSL_VERSION}/libressl-${LIBRESSL_VERSION#v}.tar.gz | tar xzf - && \
     cd libressl-* && \
     cmake -B build -DCMAKE_BUILD_TYPE=Release -DLIBRESSL_APPS=OFF -DLIBRESSL_TESTS=OFF && \
     cmake --build build && \
