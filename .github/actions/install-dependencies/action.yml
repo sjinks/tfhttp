@@ -32,7 +32,7 @@ runs:
         # renovate: datasource=github-tags depName=ada-url/ada
         LIBADA_VERSION: v2.9.1
         # renovate: datasource=github-releases depName=nodejs/llhttp
-        LLHTTP_VERSION: v9.2.0
+        LLHTTP_VERSION: v6.0.7
         # renovate: datasource=github-tags depName=nanodbc/nanodbc
         NANODBC_VERSION: v2.13.0
         # renovate: datasource=github-tags depName=libressl/portable
