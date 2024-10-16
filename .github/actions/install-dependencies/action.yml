@@ -68,7 +68,7 @@ runs:
     - name: Install libressl
       shell: bash
       run: |
-        wget -q -O - https://github.com/libressl/portable/releases/download/${LIBRESSL_VERSION}/libressl-${LIBRESSL_VERSION#v}.tar.gz | tar xzf -
+        wget -q -O - https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-${LIBRESSL_VERSION#v}.tar.gz | tar xzf -
         cd libressl-*
         cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DBUILD_SHARED_LIBS=OFF -DLIBRESSL_APPS=OFF -DLIBRESSL_TESTS=OFF -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         cmake --build build

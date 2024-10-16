@@ -65,7 +65,7 @@ RUN \
     cmake --install build
 
 RUN \
-    wget -q -O - https://github.com/libressl/portable/releases/download/${LIBRESSL_VERSION}/libressl-${LIBRESSL_VERSION#v}.tar.gz | tar xzf - && \
+    wget -q -O - "https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-${LIBRESSL_VERSION#v}.tar.gz" | tar xzf - && \
     cd libressl-* && \
     cmake -B build -DCMAKE_BUILD_TYPE=Release -DLIBRESSL_APPS=OFF -DLIBRESSL_TESTS=OFF && \
     cmake --build build && \
