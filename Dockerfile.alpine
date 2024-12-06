@@ -1,4 +1,4 @@
-FROM alpine:3.20.3@sha256:1e42bbe2508154c9126d48c2b8a75420c3544343bf86fd041fb7527e017a4b4a AS build
+FROM alpine:3.21.0@sha256:21dc6063fd678b478f57c0e13f47560d0ea4eeba26dfc947b2a4f81f686b9f45 AS build
 
 RUN apk add --no-cache cmake make libc-dev clang18 git file libev-dev ada-static ada-dev nlohmann-json libressl-dev patch unixodbc-dev
 WORKDIR /
@@ -10,7 +10,7 @@ RUN \
     cmake --build build && \
     strip --strip-unneeded build/src/tfhttp
 
-FROM alpine:3.20.3@sha256:1e42bbe2508154c9126d48c2b8a75420c3544343bf86fd041fb7527e017a4b4a
+FROM alpine:3.21.0@sha256:21dc6063fd678b478f57c0e13f47560d0ea4eeba26dfc947b2a4f81f686b9f45
 COPY --from=build /app/build/src/tfhttp /usr/bin/tfhttp
 RUN \
     apk add --no-cache mariadb-connector-odbc && \
