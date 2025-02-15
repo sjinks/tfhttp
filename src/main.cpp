@@ -37,13 +37,14 @@ std::string get_address()
     static const std::string default_address{"0.0.0.0"};
 
     if (const char* address = std::getenv("TFHTTP_ADDRESS"); address != nullptr) {  // NOLINT(concurrency-mt-unsafe)
-        struct sockaddr_in sa {};
+        in_addr v4{};
+        in6_addr v6{};
 
-        if (inet_pton(AF_INET, address, &sa.sin_addr) == 1) {
+        if (inet_pton(AF_INET, address, &v4) == 1) {
             return address;
         }
 
-        if (inet_pton(AF_INET6, address, &sa.sin_addr) == 1) {
+        if (inet_pton(AF_INET6, address, &v6) == 1) {
             return address;
         }
 

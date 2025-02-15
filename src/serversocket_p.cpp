@@ -17,11 +17,11 @@ ServerSocketPrivate::ServerSocketPrivate(const std::string& ip, std::uint16_t po
 
     SockAddr s{};
 
-    if (inet_pton(AF_INET, ip.c_str(), s.as_sockaddr_in()) == 1) {
+    if (inet_pton(AF_INET, ip.c_str(), &s.as_sockaddr_in()->sin_addr) == 1) {
         s.as_sockaddr_in()->sin_family = AF_INET;
         s.as_sockaddr_in()->sin_port   = htons(port);
     }
-    else if (inet_pton(AF_INET6, ip.c_str(), s.as_sockaddr_in6()) == 1) {
+    else if (inet_pton(AF_INET6, ip.c_str(), &s.as_sockaddr_in6()->sin6_addr) == 1) {
         s.as_sockaddr_in6()->sin6_family = AF_INET6;
         s.as_sockaddr_in6()->sin6_port   = htons(port);
     }
