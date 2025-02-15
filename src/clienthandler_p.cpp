@@ -368,7 +368,7 @@ void ClientHandlerPrivate::handle_get_state(const std::string& slug)
 
 void ClientHandlerPrivate::handle_set_state(const std::string& slug)
 {
-    ada::url_search_params query = this->m_url.get_search();
+    ada::url_search_params query(this->m_url.get_search());
     const std::string lock_id(query.get("ID").value_or(""));
     auto status = this->m_database->set_state(slug, this->m_body, lock_id);
     this->generate_text_response(static_cast<int>(status));
@@ -376,7 +376,7 @@ void ClientHandlerPrivate::handle_set_state(const std::string& slug)
 
 void ClientHandlerPrivate::handle_delete_state(const std::string& slug)
 {
-    ada::url_search_params query = this->m_url.get_search();
+    ada::url_search_params query(this->m_url.get_search());
     const std::string lock_id(query.get("lock_id").value_or(""));
     auto status = this->m_database->delete_state(slug, lock_id);
     this->generate_text_response(static_cast<int>(status));

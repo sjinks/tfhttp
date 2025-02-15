@@ -122,7 +122,7 @@ if(NOT ADA_FOUND)
     set(ADA_TOOLS OFF)
     set(ADA_TESTING OFF)
     set(BUILD_SHARED_LIBS OFF)
-    FetchContent_Declare(ada GIT_REPOSITORY https://github.com/ada-url/ada.git GIT_TAG v2.9.2 GIT_SHALLOW ON)
+    FetchContent_Declare(ada GIT_REPOSITORY https://github.com/ada-url/ada.git GIT_TAG v3.1.0 GIT_SHALLOW ON)
     FetchContent_MakeAvailable(ada)
 endif()
 
