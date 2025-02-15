@@ -1,5 +1,8 @@
 #include "stdafx.h"
 #include "clienthandler_p.h"
+
+#include <iostream>
+
 #include "database.h"
 #include "server.h"
 #include "tlsutils.h"

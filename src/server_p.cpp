@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "server_p.h"
+
 #include <experimental/scope>
+#include <iostream>
+
 #include "clienthandler.h"
 #include "server.h"
 #include "serversocket.h"
