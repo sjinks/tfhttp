@@ -41,7 +41,7 @@ ENV LLHTTP_VERSION=v9.2.1
 # renovate: datasource=github-tags depName=nanodbc/nanodbc
 ENV NANODBC_VERSION=v2.14.0
 # renovate: datasource=github-releases depName=libressl/portable
-ENV LIBRESSL_VERSION=v3.9.2
+ENV LIBRESSL_VERSION=v4.0.0
 
 RUN \
     git clone https://github.com/ada-url/ada.git --depth 1 -b "${LIBADA_VERSION}" && \
