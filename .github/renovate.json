@@ -6,7 +6,9 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["(^|/)Dockerfile(\\.\\w+)?$"],
+      "managerFilePatterns": [
+        "/(^|/)Dockerfile(\\.\\w+)?$/"
+      ],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?( registryUrl=(?<registryUrl>.*?))?\\s+ENV\\s+.*?_VERSION=(?<currentValue>.*)\\s"
       ],
@@ -14,7 +16,9 @@
     },
     {
       "customType": "regex",
-      "fileMatch": ["(^|/)\\.github/(?:workflows|actions)/.+\\.ya?ml$"],
+      "managerFilePatterns": [
+        "/(^|/)\\.github/(?:workflows|actions)/.+\\.ya?ml$/"
+      ],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?( registryUrl=(?<registryUrl>.*?))?\\s+.*?_VERSION:\\s*(?<currentValue>.*)\\s"
       ],
