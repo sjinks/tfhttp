@@ -19,7 +19,7 @@ runs:
         sudo apt-get install -y clang-tools-18
 
     - name: Set up ccache
-      uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2.20
+      uses: hendrikmuhs/ccache-action@1bbbcda0748b3e340dee71a314fa68ffcbd6df79 # v1.2.21
 
     - name: Set package versions
       shell: bash
