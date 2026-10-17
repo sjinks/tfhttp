@@ -1,4 +1,4 @@
-FROM ubuntu:24.04@sha256:c35e29c9450151419d9448b0fd75374fec4fff364a27f176fb458d472dfc9e54 AS build
+FROM ubuntu:24.04@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac AS build
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -16,7 +16,7 @@ RUN \
     strip --strip-unneeded build/src/tfhttp
 
 
-FROM ubuntu:24.04@sha256:c35e29c9450151419d9448b0fd75374fec4fff364a27f176fb458d472dfc9e54
+FROM ubuntu:24.04@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac
 
 ENV DEBIAN_FRONTEND=noninteractive
 
