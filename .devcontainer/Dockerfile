@@ -35,7 +35,7 @@ RUN \
 WORKDIR /usr/src
 
 # renovate: datasource=github-tags depName=ada-url/ada
-ENV LIBADA_VERSION=v3.4.3
+ENV LIBADA_VERSION=v3.4.4
 # renovate: datasource=github-tags depName=nodejs/llhttp
 ENV LLHTTP_VERSION=v9.3.1
 # renovate: datasource=github-tags depName=nanodbc/nanodbc
