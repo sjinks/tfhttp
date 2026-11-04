@@ -39,7 +39,7 @@ ENV LIBADA_VERSION=v4.0.0
 # renovate: datasource=github-tags depName=nodejs/llhttp
 ENV LLHTTP_VERSION=v9.4.3
 # renovate: datasource=github-tags depName=nanodbc/nanodbc
-ENV NANODBC_VERSION=v2.14.0
+ENV NANODBC_VERSION=v3.0.8
 # renovate: datasource=github-releases depName=libressl/portable
 ENV LIBRESSL_VERSION=v4.4.0
 
