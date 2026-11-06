@@ -60,7 +60,7 @@ RUN \
 RUN \
     git clone https://github.com/nanodbc/nanodbc.git --depth 1 -b "${NANODBC_VERSION}" && \
     cd nanodbc && \
-    CXX=g++ cmake -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON -DNANODBC_DISABLE_TESTS=ON -DNANODBC_DISABLE_EXAMPLES=ON -DNANODBC_DISABLE_LIBCXX=ON && \
+    CXX=g++ cmake -B build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=MinSizeRel -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON -DNANODBC_DISABLE_TESTS=ON -DNANODBC_DISABLE_EXAMPLES=ON -DNANODBC_DISABLE_LIBCXX=ON && \
     cmake --build build -j $(nproc) && \
     cmake --install build
 
