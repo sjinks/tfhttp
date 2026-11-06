@@ -162,6 +162,8 @@ if(NOT nanodbc_FOUND)
     FetchContent_Declare(nanodbc URL https://github.com/nanodbc/nanodbc/archive/refs/tags/v2.14.0.tar.gz PATCH_COMMAND ${nanodbc_patch})
     FetchContent_MakeAvailable(nanodbc)
     set_target_properties(nanodbc PROPERTIES CXX_STANDARD 17)
+    # nanodbc 2.14 uses std::wstring_convert, deprecated by newer standard libraries.
+    target_compile_options(nanodbc PRIVATE $<$<CXX_COMPILER_ID:Clang,GNU>:-Wno-error=deprecated-declarations>)
 endif()
 
 set(BUILD_SHARED_LIBS ${orig_BUILD_SHARED_LIBS})
