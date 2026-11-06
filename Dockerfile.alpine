@@ -1,6 +1,6 @@
 FROM alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS build
 
-RUN apk add --no-cache cmake make libc-dev clang18 git file libev-dev ada-static ada-dev nlohmann-json libressl-dev patch unixodbc-dev
+RUN apk add --no-cache binutils cmake make libc-dev clang18 g++ git file libev-dev ada-static ada-dev nlohmann-json libressl-dev patch unixodbc-dev
 WORKDIR /
 COPY . /app
 WORKDIR /app

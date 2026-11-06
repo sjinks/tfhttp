@@ -1,3 +1,10 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,2 +1,2 @@
+-cmake_minimum_required(VERSION 3.0.0)
++cmake_minimum_required(VERSION 3.5)
+ project(nanodbc CXX)
 diff --git a/nanodbc/nanodbc.cpp b/nanodbc/nanodbc.cpp
 index fb85598..12e604c 100644
 --- a/nanodbc/nanodbc.cpp
