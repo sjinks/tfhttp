@@ -88,8 +88,10 @@ if(NOT FORCE_EXTERNAL_LIBTLS)
 endif()
 
 if(NOT FORCE_EXTERNAL_LIBNANODBC)
-    find_package(ODBC REQUIRED)
     find_package(nanodbc QUIET)
+    if(nanodbc_FOUND)
+        find_package(ODBC REQUIRED)
+    endif()
 endif()
 
 find_package(nlohmann_json QUIET)
