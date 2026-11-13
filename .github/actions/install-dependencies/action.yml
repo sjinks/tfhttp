@@ -36,7 +36,7 @@ runs:
         # renovate: datasource=github-tags depName=nanodbc/nanodbc
         NANODBC_VERSION: v3.0.8
         # renovate: datasource=github-releases depName=libressl/portable
-        LIBRESSL_VERSION: v4.4.0
+        LIBRESSL_VERSION: v4.4.1
 
     - name: Install libada
       shell: bash
