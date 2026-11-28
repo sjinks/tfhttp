@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: clang-format Check
-        uses: jidicula/clang-format-action@654a770daa28443dd111d133e4083e21c1075674 # v4.18.0
+        uses: jidicula/clang-format-action@66d8cc15d747754041095258163a80414bbf54ba # v4.19.0
         with:
           clang-format-version: 18
           check-path: src
